@@ -1,0 +1,140 @@
+# 🗃️ Scavengr - Git Ignore Configuration
+
+# === DOCUMENTACIÓN Y TESTS (NO INCLUIR EN v0.0.1) ===
+# Documentación extensa - Solo README.md en raíz
+doc/
+docs/
+documentation/
+scavengr/_version.py
+
+# Tests - No incluir en primera versión
+tests/
+test/
+
+# GitHub Actions - Incluir solo workflows
+.github/*
+!.github/workflows/*
+
+# === ARCHIVOS GENERADOS AUTOMÁTICAMENTE ===
+# Archivos de salida de Scavengr
+temp/
+output_files/
+*/output_files/
+*/output/
+output/
+*.dbml
+*.xlsx
+*.csv
+!/tests/fixtures/*.dbml
+!/tests/fixtures/*.csv
+
+# Archivos de logging
+*.log
+logs/
+
+# === ARCHIVOS DE CONFIGURACIÓN SENSIBLES ===
+# Configuraciones de BD con credenciales
+config/db_config.json
+config/db_config_*.json
+!config/db_config.example.json
+
+# Credenciales y claves
+*.key
+*.pem
+.env
+.env.*
+!.env.example
+
+# === ARCHIVOS DE PYTHON ===
+# Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribución / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# === TESTING Y COBERTURA ===
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+nosetests.xml
+
+# === HERRAMIENTAS DE DESARROLLO ===
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Entornos virtuales
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.python-version
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# === ARCHIVOS DEL SISTEMA OPERATIVO ===
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Linux
+*~
+
+# === ARCHIVOS TEMPORALES ===
+*.tmp
+*.temp
+*.bak
+*.swp
+
+# === ARCHIVOS DE BASE DE DATOS LOCALES ===
+*.db
+*.sqlite
+*.sqlite3

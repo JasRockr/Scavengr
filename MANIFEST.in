@@ -1,0 +1,8 @@
+include README.md
+include LICENSE
+recursive-include scavengr *.py
+recursive-include doc *.md
+recursive-exclude tests *
+recursive-exclude .git *
+recursive-exclude __pycache__ *
+recursive-exclude *.pyc *

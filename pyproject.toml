@@ -1,0 +1,125 @@
+[build-system]
+requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+write_to = "scavengr/_version.py"
+
+[project]
+name = "scavengr"
+dynamic = ["version"]
+description = "Scavengr — Recolector y documentador de metadatos en bases de datos"
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+authors = [
+  { name = "Json Rivera", email = "jsonrivera@proton.me" }
+]
+maintainers = [
+  { name = "Json Rivera", email = "jsonrivera@proton.me" }
+]
+keywords = ["database", "dbml", "metadata", "documentation", "schema", "data-dictionary", "clean-architecture", "cli", "tool", "scavengr"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Intended Audience :: System Administrators", 
+  "Topic :: Database :: Database Engines/Servers",
+  "Topic :: Software Development :: Documentation",
+  "Topic :: System :: Systems Administration",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9", 
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Operating System :: OS Independent"
+]
+
+dependencies = [
+  "python-dotenv==1.1",
+  "openpyxl==3.1"
+]
+
+[project.urls]
+Homepage = "https://github.com/JasRockr/Scavengr"
+Repository = "https://github.com/JasRockr/Scavengr.git"
+Issues = "https://github.com/JasRockr/Scavengr/issues"
+Documentation = "https://github.com/JasRockr/Scavengr#readme"
+
+[project.optional-dependencies]
+postgres = ["psycopg2-binary>=2.9"]
+mysql = ["PyMySQL>=1.0", "mysql-connector-python>=8.0"] 
+mssql = ["pyodbc>=4.0"]
+all-db = ["psycopg2-binary>=2.9", "PyMySQL>=1.0", "mysql-connector-python>=8.0", "pyodbc>=4.0"]
+dev = ["pytest>=7.0", "pytest-cov>=2.0", "flake8>=3.8", "black>=21.0", "isort>=5.0", "mypy", "pre-commit", "safety", "bandit"]
+
+[project.scripts]
+scavengr = "scavengr.cli:cli"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["scavengr*"]
+exclude = ["tests*", "output_files*", "config*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+
+[tool.coverage.run]
+source = ["scavengr"]
+omit = [
+    "tests/*",
+    "*/migrations/*",
+    "*/venv/*",
+    "*/virtualenv/*",
+    "*/.venv/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
+[tool.coverage.xml]
+output = "coverage.xml"
+
+[tool.black]
+line-length = 88
+target-version = ["py38", "py39", "py310", "py311"]
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line-length = 88
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
