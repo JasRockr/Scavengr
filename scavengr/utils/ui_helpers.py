@@ -3,6 +3,10 @@
 
 Helpers para interfaz de usuario y feedback visual en consola.
 Provee funciones para mostrar mensajes coloreados y formateados.
+
+Author: Json Rivera
+Date: 2025-09-26
+Version: 0.0.1
 """
 
 __all__ = ["provide_user_feedback"]

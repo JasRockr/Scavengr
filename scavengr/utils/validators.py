@@ -3,6 +3,10 @@
 
 Validadores de archivos y permisos para Scavengr.
 Provee funciones para validar existencia de archivos, formatos y permisos.
+
+Author: Json Rivera
+Date: 2025-09-26
+Version: 0.0.1
 """
 
 import os

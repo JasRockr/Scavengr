@@ -10,6 +10,10 @@ Examples:
     $ python -m scavengr extract -o output.dbml
     $ python -m scavengr validate -i schema.dbml
     $ python -m scavengr dictionary -i schema.dbml -o dict.xlsx
+
+Author: Json Rivera
+Date: 2025-09-26
+Version: 0.0.1
 """
 
 import sys

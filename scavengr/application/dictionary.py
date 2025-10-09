@@ -12,8 +12,8 @@ Examples:
     True
 
 Author: Json Rivera
-Date: 2025-01-06
-Version: 1.0.0
+Date: 2025-09-26
+Version: 0.0.1
 """
 
 import os
@@ -128,18 +128,27 @@ class GenerateDictionary:
         """
         try:
             logger.info(f"[DICTIONARY] Generando diccionario desde: {input_path}")
+            logger.debug(f"[DEBUG] Formato de salida: {output_format.upper()}")
+            logger.debug(f"[DEBUG] Archivo destino: {output_path}")
             
             # Paso 1: Validar archivo de entrada
+            logger.debug("[DEBUG] Paso 1: Validando archivo de entrada...")
             if not os.path.exists(input_path):
                 raise FileNotFoundError(f"Archivo no encontrado: {input_path}")
+            logger.debug(f"[DEBUG] Archivo DBML válido: {os.path.getsize(input_path)} bytes")
             
             # Paso 2: Parsear DBML
+            logger.debug("[DEBUG] Paso 2: Parseando archivo DBML...")
             schema = self._parse_dbml(input_path)
+            logger.debug(f"[DEBUG] Esquema parseado: {len(schema.tables)} tablas encontradas")
             
             # Paso 3: Generar entradas del diccionario
+            logger.debug("[DEBUG] Paso 3: Generando entradas del diccionario...")
             entries = self._generate_dictionary_entries(schema)
+            logger.debug(f"[DEBUG] Diccionario generado: {len(entries)} entradas procesadas")
             
             # Paso 4: Exportar a formato deseado
+            logger.debug(f"[DEBUG] Paso 4: Exportando a formato {output_format.upper()}...")
             self._export_dictionary(entries, output_path, output_format)
             
             # Paso 5: Construir resultado

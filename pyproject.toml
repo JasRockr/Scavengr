@@ -54,7 +54,7 @@ all-db = ["psycopg2-binary>=2.9", "PyMySQL>=1.0", "mysql-connector-python>=8.0",
 dev = ["pytest>=7.0", "pytest-cov>=2.0", "flake8>=3.8", "black>=21.0", "isort>=5.0", "mypy", "pre-commit", "safety", "bandit"]
 
 [project.scripts]
-scavengr = "scavengr.cli:cli"
+scavengr = "scavengr.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["."]

@@ -5,8 +5,8 @@ Conectores de bases de datos para Scavengr.
 Proporciona una interfaz unificada para conectar con diferentes motores de bases de datos.
 
 Author: Json Rivera
-Date: 2024-09-26
-Version: 1.0
+Date: 2025-09-26
+Version: 0.0.1
 """
 
 from math import log

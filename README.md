@@ -4,6 +4,7 @@
 ![Python](https://img.shields.io/badge/python-3.8%2B-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Status](https://img.shields.io/badge/status-alpha-orange.svg)
+[![PyPI version](https://badge.fury.io/py/scavengr.svg)](https://pypi.org/project/scavengr/)
 
 > *"Descubre lo que tus bases esconden."*
 
@@ -44,6 +45,25 @@ Extrae esquemas de bases de datos, genera archivos DBML compatibles con [dbdiagr
 
 ---
 
+## ✅ Flujo de trabajo típico
+
+### 1. Configuración inicial (una sola vez)
+
+```bash
+scavengr init
+```
+
+### 2. Flujo principal
+
+```bash
+scavengr extract -o schema.dbml                    # Extraer
+scavengr validate -i schema.dbml                   # Validar
+scavengr dictionary -i schema.dbml -o dict.xlsx    # Documentar
+scavengr report -i schema.dbml -o report.xlsx      # Analizar
+```
+
+---
+
 ## ⚡ Instalación
 
 ### Requisitos Previos
@@ -51,7 +71,25 @@ Extrae esquemas de bases de datos, genera archivos DBML compatibles con [dbdiagr
 - **Python**: 3.8 o superior (recomendado: 3.10+)
 - **pip**: Gestor de paquetes de Python
 
-### Instalación desde Fuente
+### Instalación desde PyPI
+
+La forma más sencilla de instalar **Scavengr** es directamente desde PyPI:
+
+```bash
+# Instalación básica
+pip install scavengr
+
+# Verificar instalación
+scavengr --version
+
+# Configuración inicial (crea archivo .env)
+scavengr init
+
+# ¡Listo para usar!
+scavengr extract -o mi-esquema.dbml
+```
+
+### Instalación desde Fuente - En modo Desarrollo
 
 ```bash
 # Clonar repositorio
@@ -95,22 +133,38 @@ pip install pyodbc
 
 ### 1️⃣ **Configuración Inicial**
 
-Crea un archivo `.env` en la raíz del proyecto:
+#### 🚀 **Configuración Rápida (Recomendado)**
 
 ```bash
-# Copiar plantilla de ejemplo
+# Generar archivo de configuración automáticamente
+scavengr init
+
+# O crear configuración global (disponible en cualquier directorio)
+scavengr init --global
+```
+
+#### 🔧 **Configuración Manual**
+
+```bash
+# Opción 1: Crear archivo .env local (desde desarrollo)
 cp .env.example .env
 
-# Editar con tus credenciales
-# Ejemplo para PostgreSQL:
-DB_TYPE=postgresql
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=mi_base_datos
-DB_USER=usuario_lectura
-DB_PASSWORD=contraseña_segura
-DB_SCHEMA=public
+# Opción 2: Crear archivo .env desde cero
+echo 'DB_TYPE=postgresql' > .env
+echo 'DB_HOST=localhost' >> .env
+echo 'DB_NAME=mi_base_datos' >> .env
+echo 'DB_USER=usuario_lectura' >> .env
+echo 'DB_PASSWORD=contraseña_segura' >> .env
 ```
+
+#### 📍 **Ubicaciones de Configuración**
+
+Scavengr busca configuración en este orden de prioridad:
+
+1. **Archivo específico**: `--env-file mi-config.env`
+2. **Directorio actual**: `.env.local` → `.env`
+3. **Configuración global**: `~/.scavengr.env`
+4. **Variables del sistema**: `export DB_TYPE=postgresql`
 
 **Tipos de base de datos soportados**: `postgresql`, `mysql`, `mssql`
 
@@ -185,6 +239,7 @@ scavengr report -i /ruta/mi-esquema.dbml -o /ruta/reporte-analisis.xlsx
 scavengr --help
 
 # Ayuda por comando
+scavengr init --help
 scavengr extract --help
 scavengr validate --help
 scavengr dictionary --help
@@ -201,7 +256,7 @@ scavengr extract [OPTIONS]
 
 Opciones:
   -o, --output PATH        Archivo DBML de salida (requerido)
-  --config PATH            Archivo de configuración (default: .env)
+  --env-file PATH          Archivo .env específico a usar (default: .env)
   --help                   Mostrar ayuda
 ```
 
@@ -223,6 +278,16 @@ scavengr dictionary [OPTIONS]
 Opciones:
   -i, --input PATH         Archivo DBML de entrada (requerido)
   -o, --output PATH        Archivo de salida .xlsx (requerido)
+  --help                   Mostrar ayuda
+```
+
+### Comando `init`
+
+```bash
+scavengr init [OPTIONS]
+
+Opciones:
+  --global                 Crear configuración global en directorio home
   --help                   Mostrar ayuda
 ```
 
@@ -358,8 +423,7 @@ scavengr dictionary -i /ruta/esquema.dbml -o /ruta/datos-sensibles.xlsx
 scavengr extract -o /ruta/origen.dbml
 
 # 2. Extraer esquema destino
-# El parametro --config puede presentar algunos errores
-scavengr extract --config /ruta/destino.env -o /ruta/destino.dbml
+scavengr extract --env-file /ruta/destino.env -o /ruta/destino.dbml
 
 # 3. Comparar manualmente (diff tool)
 # 4. Validar ambos esquemas

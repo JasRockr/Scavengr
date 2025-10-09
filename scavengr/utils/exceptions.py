@@ -3,6 +3,10 @@
 
 Excepciones personalizadas para Scavengr.
 Todas las excepciones del proyecto heredan de ScavengrError.
+
+Author: Json Rivera
+Date: 2025-09-26
+Version: 0.0.1
 """
 
 __all__ = [

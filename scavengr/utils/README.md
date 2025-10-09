@@ -19,7 +19,7 @@ scavengr/utils/
 
 ## Logging (`logging_config.py`)
 
-Sistema de logging centralizado con soporte de colores ANSI multiplataforma.
+Sistema de logging centralizado con soporte de colores ANSI multiplataforma y herencia automática de configuración.
 
 ### Características
 
@@ -28,6 +28,7 @@ Sistema de logging centralizado con soporte de colores ANSI multiplataforma.
 - ✅ **Forzado de color** mediante parámetro o variable de entorno
 - ✅ **Soporte UTF-8** en Windows (maneja emojis y caracteres especiales)
 - ✅ **Handler a archivo** opcional para persistir logs
+- ✅ **Herencia automática** - configura el logger raíz para que todos los sub-loggers hereden nivel DEBUG/INFO
 - ✅ **Sin dependencias externas** (solo stdlib: `logging`, `sys`, `os`)
 
 ### Uso básico
@@ -130,50 +131,79 @@ logger = setup_logging()
 logger.info("Módulo inicializado")
 ```
 
-### Opción 2: Usar el logger ya configurado
+### Opción 2: Usar el logger ya configurado (herencia automática)
 
 ```python
-# Si scavengr.scavengr ya configuró el logger
+# Después de que el CLI configure el logger principal
+import logging
+
+# Cualquier sub-logger hereda automáticamente la configuración DEBUG/INFO
+logger = logging.getLogger(__name__)  # Ej: "scavengr.application.extract"
+logger.debug("Este mensaje se verá si verbose=True fue configurado")
+logger.info("Reutilizando configuración del logger raíz")
+```
+
+### Opción 3: Logger específico de aplicación
+
+```python
+# Si necesitas el logger principal específico
 import logging
 
 logger = logging.getLogger("Scavengr")
-logger.info("Reutilizando logger configurado")
+logger.info("Logger principal de la aplicación")
 ```
 
-### Opción 3: Logger por módulo
+### Opción 4: Logger por módulo (recomendado para casos de uso)
 
 ```python
-# Para crear un logger específico por módulo
-from scavengr.utils import setup_logging
+# Para crear un logger específico que herede automáticamente
+import logging
 
-logger = setup_logging(name="Scavengr.Connectors")
-logger.debug("Logger específico para connectors")
+logger = logging.getLogger(__name__)  # Ej: "scavengr.core.services" 
+logger.debug("Logger específico que hereda configuración global")
 ```
 
 ---
 
 ## Ejemplo de integración en CLI
 
-En `scavengr/scavengr.py`:
+En `scavengr/cli.py`:
 
 ```python
 from scavengr.utils import setup_logging
-
-# Logger por defecto (INFO)
-logger = setup_logging()
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--verbose', action='store_true')
     args = parser.parse_args()
     
-    # Reconfigurar si verbose=True
+    # Configurar logging (configura tanto el logger principal como el raíz)
+    global logger
     if args.verbose:
-        setup_logging(verbose=True)
+        logger = setup_logging(verbose=True)
         logger.info("Modo detallado (DEBUG) activado")
+        logger.debug(f"Argumentos parseados: {vars(args)}")
+    else:
+        logger = setup_logging(verbose=False)
     
     # Usar el logger
     logger.info("Iniciando aplicación")
+```
+
+### Herencia automática en casos de uso
+
+Después de configurar el logger en CLI, cualquier módulo puede usar logging sin configuración adicional:
+
+```python
+# En scavengr/application/extract.py
+import logging
+
+logger = logging.getLogger(__name__)  # "scavengr.application.extract"
+
+def extract_metadata():
+    logger.debug("[DEBUG] Iniciando extracción...")  # ✅ Se ve si verbose=True
+    logger.info("[INFO] Conectando a base de datos...")  # ✅ Siempre se ve
+    logger.error("[ERROR] Error de conexión")  # ✅ Siempre se ve
 ```
 
 ---
@@ -222,14 +252,96 @@ python -c "from scavengr.utils import setup_logging; log=setup_logging(verbose=T
 
 ---
 
+## Comportamiento de herencia mejorado
+
+### ✅ Antes vs Ahora
+
+**Antes (problemático):**
+
+```python
+# CLI configuraba solo "Scavengr"
+setup_logging(verbose=True)  # Solo afecta al logger "Scavengr"
+
+# En casos de uso:
+logger = logging.getLogger(__name__)  # "scavengr.application.extract"
+logger.debug("No se veía")  # ❌ No heredaba la configuración DEBUG
+```
+
+**Ahora (solucionado):**
+
+```python
+# CLI configura tanto el logger principal como el raíz
+setup_logging(verbose=True)  # Afecta al logger raíz + "Scavengr"
+
+# En casos de uso:
+logger = logging.getLogger(__name__)  # "scavengr.application.extract"  
+logger.debug("Se ve perfectamente")  # ✅ Hereda DEBUG del logger raíz
+```
+
+### Ventajas de la nueva implementación
+
+- 🎯 **Configuración única**: Una sola llamada a `setup_logging()` configura toda la aplicación
+- 🔄 **Herencia automática**: Todos los módulos heredan nivel DEBUG/INFO sin configuración adicional
+- 🧹 **Limpieza de handlers**: Evita handlers duplicados al reconfigurar
+- 📝 **Mejor troubleshooting**: Mensajes DEBUG de todos los módulos visibles con `--verbose`
+
 ## Principios de diseño
 
 - **DRY (Don't Repeat Yourself)**: Configuración centralizada, un solo lugar para modificar.
 - **KISS (Keep It Simple, Stupid)**: API simple, sin complejidad innecesaria.
 - **Clean Architecture**: Separación clara entre infraestructura (logging) y lógica de aplicación.
+- **Herencia inteligente**: Los sub-loggers heredan automáticamente la configuración del raíz.
 - **Sin dependencias externas**: Solo usa la biblioteca estándar de Python.
 
 ---
+
+## Mejores prácticas recomendadas
+
+### ✅ Recomendado
+
+```python
+# En casos de uso y módulos de aplicación
+import logging
+
+logger = logging.getLogger(__name__)  # Hereda configuración automáticamente
+logger.debug("[DEBUG] Paso 1: Inicializando...")
+logger.info("[INFO] Proceso completado exitosamente")
+```
+
+### ⚠️ Evitar
+
+```python
+# No crear loggers personalizados innecesarios
+from scavengr.utils import setup_logging
+logger = setup_logging(name="MiLogger")  # ❌ Innecesario en la mayoría de casos
+
+# No configurar logging múltiples veces
+setup_logging(verbose=True)
+setup_logging(verbose=False)  # ❌ Puede causar handlers duplicados
+```
+
+### 🎯 Patrón recomendado para casos de uso
+
+```python
+# scavengr/application/extract.py
+import logging
+from typing import Dict, Any
+
+logger = logging.getLogger(__name__)  # "scavengr.application.extract"
+
+class ExtractMetadata:
+    def execute(self, output_path: str) -> ExtractResult:
+        logger.debug(f"[DEBUG] Iniciando extracción hacia: {output_path}")
+        logger.info("[INFO] Conectando a base de datos...")
+        
+        try:
+            # Lógica de extracción...
+            logger.debug("[DEBUG] Metadatos extraídos exitosamente")
+            logger.info("[SUCCESS] Extracción completada")
+        except Exception as e:
+            logger.error(f"[ERROR] Error en extracción: {str(e)}")
+            raise
+```
 
 ## Extensiones futuras proyectadas
 
@@ -240,6 +352,7 @@ Posibles mejoras sin romper la API actual:
 - [ ] Formatter JSON para integración con sistemas de logging centralizados
 - [ ] Soporte para configuración desde archivo YAML/TOML
 - [ ] Handlers adicionales (Syslog, HTTP, etc.)
+- [ ] Logger context manager para operaciones específicas
 
 ---
 

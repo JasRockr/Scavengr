@@ -6,8 +6,8 @@ Convierte entidades de dominio (DatabaseSchema) a formato DBML.
 Implementa IFormatter del dominio.
 
 Author: Json Rivera
-Date: 2024-09-28
-Version: 1.0
+Date: 2025-09-26
+Version: 0.0.1
 """
 
 from typing import Dict, Any, List

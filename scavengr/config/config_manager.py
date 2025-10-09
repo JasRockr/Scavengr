@@ -3,8 +3,8 @@ Módulo de gestión de configuración para Scavengr.
 Gestor de configuración que usa variables de entorno (.env)
 
 Author: Json Rivera
-Date: 2024-09-26
-Version: 1.0
+Date: 2025-09-26
+Version: 0.0.1
 """
 
 import os

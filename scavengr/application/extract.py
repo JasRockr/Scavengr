@@ -12,8 +12,8 @@ Examples:
     True
 
 Author: Json Rivera
-Date: 2025-01-06
-Version: 1.0.0
+Date: 2025-09-26
+Version: 0.0.1
 """
 
 import os
@@ -112,15 +112,25 @@ class ExtractMetadata:
         """
         try:
             logger.info("[EXTRACT] Iniciando extracción de metadatos...")
+            logger.debug(f"[DEBUG] Configuración BD: {self.db_config['type']} en {self.db_config['host']}")
+            logger.debug(f"[DEBUG] Archivo destino: {output_path}")
             
             # Paso 1: Conectar a la base de datos
+            logger.debug("[DEBUG] Paso 1: Conectando a base de datos...")
             self._connect()
+            logger.debug("[DEBUG] Conexión establecida exitosamente")
             
             # Paso 2: Extraer metadatos raw
+            logger.debug("[DEBUG] Paso 2: Extrayendo metadatos raw...")
             raw_metadata = self._extract_raw_metadata()
+            # Contar tablas únicas desde las columnas si no hay tables explícitas
+            tables_count = len(raw_metadata.get('tables', [])) or len(set(col[1] for col in raw_metadata.get('columns', [])))
+            logger.debug(f"[DEBUG] Metadatos raw extraídos: {tables_count} tablas, {len(raw_metadata.get('columns', []))} columnas")
             
             # Paso 3: Normalizar a entidades de dominio
+            logger.debug("[DEBUG] Paso 3: Normalizando a entidades de dominio...")
             schema = self._normalize_to_domain_entities(raw_metadata)
+            logger.debug(f"[DEBUG] Esquema normalizado: {len(schema.tables)} tablas, {sum(len(t.columns) for t in schema.tables)} columnas")
             
             # Paso 4: Generar archivo DBML
             self._generate_dbml(schema, output_path)

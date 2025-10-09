@@ -10,7 +10,7 @@ Servicios disponibles:
     - QualityCriteriaService: Generación de criterios de calidad
     - RelationshipAnalyzer: Análisis de relaciones entre tablas
 
-Principles Applied:
+Principios Aplicados:
     - DRY: Lógica centralizada y reutilizable
     - SRP: Cada servicio tiene una única responsabilidad
     - KISS: Implementaciones simples y claras

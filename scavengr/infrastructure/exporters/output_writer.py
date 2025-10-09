@@ -3,8 +3,8 @@ Módulo para exportar diccionarios de datos a diferentes formatos (CSV, Excel, J
 Movido e integrado desde /src para consolidar toda la funcionalidad en el paquete scavengr.
 
 Author: Json Rivera
-Date: 2024-09-26
-Version: 1.2
+Date: 2025-09-26
+Version: 0.0.1
 """
 
 import csv

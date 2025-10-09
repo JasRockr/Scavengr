@@ -6,6 +6,9 @@ Provee un formateador con color ANSI y una función `setup_logging` que
 configura un logger con consola (y opción de archivo) sin depender de
 paquetes externos.
 
+Author: Json Rivera
+Date: 2025-10-09
+Version: 0.0.3
 """
 from __future__ import annotations
 
@@ -104,12 +107,22 @@ def setup_logging(
     """
 
     level = logging.DEBUG if verbose else logging.INFO
+    
+    # Configurar el logger raíz para que todos los sub-loggers hereden la configuración
+    root_logger = logging.getLogger()
+    root_logger.setLevel(level)
+    
+    # También configurar el logger específico de la aplicación
     logger = logging.getLogger(name)
     logger.setLevel(level)
 
     # Evitar handlers duplicados si se llama varias veces
     if logger.hasHandlers():
         logger.handlers.clear()
+    
+    # Limpiar handlers del logger raíz también para evitar duplicados
+    if root_logger.hasHandlers():
+        root_logger.handlers.clear()
 
     # Determinar si forzar color por variable de entorno o parámetro
     env_force = os.getenv("SCAVENGR_FORCE_COLOR")
@@ -141,7 +154,9 @@ def setup_logging(
     
     console_handler.setFormatter(formatter)
     console_handler.setLevel(level)
-    logger.addHandler(console_handler)
+    
+    # Agregar handler solo al logger raíz para que todos los sub-loggers lo hereden
+    root_logger.addHandler(console_handler)
 
     # Handler opcional a archivo
     if log_file:
@@ -149,9 +164,10 @@ def setup_logging(
         file_formatter = logging.Formatter(log_format)
         file_handler.setFormatter(file_formatter)
         file_handler.setLevel(file_level)
-        logger.addHandler(file_handler)
+        root_logger.addHandler(file_handler)
 
-    logger.propagate = False
+    # Permitir propagación para que los sub-loggers usen los handlers del raíz
+    logger.propagate = True
     return logger
 
 

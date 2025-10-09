@@ -3,6 +3,10 @@
 
 Constantes compartidas para el proyecto Scavengr.
 Define comandos CLI, formatos soportados y mensajes estándar.
+
+Author: Json Rivera
+Date: 2025-10-09
+Version: 0.0.3
 """
 
 __all__ = ["Commands", "Formats", "Messages"]
@@ -16,11 +20,13 @@ class Commands:
         VALIDATE: Comando para validar archivos DBML.
         DICTIONARY: Comando para generar diccionarios de datos.
         REPORT: Comando para generar informes.
+        INIT: Comando para inicializar configuración.
     """
     EXTRACT = "extract"
     VALIDATE = "validate"
     DICTIONARY = "dictionary"
     REPORT = "report"
+    INIT = "init"
 
 
 class Formats:

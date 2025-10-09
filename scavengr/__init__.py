@@ -15,8 +15,8 @@ Architecture:
     - utils/: Utilidades transversales (logging, validación, excepciones)
 
 Author: Json Rivera
-Date: 2024-09-26
-Version: 0.0.1
+Date: 2025-10-09
+Version: 0.0.3
 """
 
 import sys

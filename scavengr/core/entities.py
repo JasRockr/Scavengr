@@ -10,6 +10,10 @@ Entidades:
 - Relationship: Representa una relación entre tablas
 - Index: Representa un índice en una tabla
 - DatabaseSchema: Representa el esquema completo de una base de datos
+
+Author: Json Rivera
+Date: 2025-09-26
+Version: 0.0.1
 """
 from __future__ import annotations
 

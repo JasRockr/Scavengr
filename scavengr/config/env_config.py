@@ -3,8 +3,8 @@ Módulo para gestión segura de configuración basada en variables de entorno.
 Toda la configuración se obtiene desde archivos .env
 
 Author: Json Rivera
-Date: 2024-09-26
-Version: 0.1
+Date: 2025-10-09
+Version: 0.0.3
 """
 
 import os
@@ -39,10 +39,15 @@ class EnvConfigManager:
         if env_file:
             env_files_to_try.append(env_file)
         
+        # Buscar .env en directorio actual y directorio home
+        current_dir = os.getcwd()
+        home_dir = os.path.expanduser("~")
+        
         # Orden de prioridad para archivos .env
         env_files_to_try.extend([
-            ".env.local",   # Específico del desarrollador (máxima prioridad)
-            ".env",         # General del proyecto
+            os.path.join(current_dir, ".env.local"),   # Específico del desarrollador
+            os.path.join(current_dir, ".env"),         # General del proyecto (directorio actual)
+            os.path.join(home_dir, ".scavengr.env"),   # Configuración global del usuario
         ])
         
         loaded_files = []
@@ -50,11 +55,61 @@ class EnvConfigManager:
             if os.path.exists(env_file_path):
                 load_dotenv(env_file_path, override=True)
                 loaded_files.append(env_file_path)
+                # Debug: mostrar variables cargadas (sin valores sensibles)
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.debug(f"[DEBUG] Archivo .env cargado: {env_file_path}")
         
         if loaded_files:
             print(f"✅ Variables de entorno cargadas desde: {', '.join(loaded_files)}")
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.debug(f"[DEBUG] Total archivos .env procesados: {len(loaded_files)}")
         else:
-            print("ℹ️  No se encontraron archivos .env, usando variables del sistema")
+            self._show_config_help()
+    
+    def _show_config_help(self):
+        """Mostrar ayuda de configuración cuando no se encuentren archivos .env"""
+        import platform
+        is_windows = platform.system() == "Windows"
+        
+        print("ℹ️  No se encontraron archivos de configuración .env")
+        print()
+        print("📋 Para configurar Scavengr, puede:")
+        print("   1. Crear archivo .env en el directorio actual:")
+        
+        if is_windows:
+            print("      echo DB_TYPE=postgresql > .env")
+            print("      echo DB_HOST=localhost >> .env")
+            print("      echo DB_NAME=mi_bd >> .env")
+            print("      echo DB_USER=usuario >> .env")
+            print("      echo DB_PASSWORD=contraseña >> .env")
+        else:
+            print("      echo 'DB_TYPE=postgresql' > .env")
+            print("      echo 'DB_HOST=localhost' >> .env")
+            print("      echo 'DB_NAME=mi_bd' >> .env")
+            print("      echo 'DB_USER=usuario' >> .env")
+            print("      echo 'DB_PASSWORD=contraseña' >> .env")
+        
+        print()
+        print("   2. Crear configuración global en su directorio home:")
+        home_config = os.path.join(os.path.expanduser("~"), ".scavengr.env")
+        print(f"      {home_config}")
+        print()
+        print("   3. Usar variables de entorno del sistema:")
+        
+        if is_windows:
+            print("      set DB_TYPE=postgresql")
+            print("      set DB_HOST=localhost")
+            print("      # ... etc")
+        else:
+            print("      export DB_TYPE=postgresql")
+            print("      export DB_HOST=localhost")
+            print("      # ... etc")
+        
+        print()
+        print("🆘 Para más detalles, visite: https://github.com/JasRockr/Scavengr#configuración")
+        print("   Usando variables del sistema como fallback...")
     
     def _validate_env_var(self, env_var: str, default: Any = None, required: bool = False) -> Any:
         """

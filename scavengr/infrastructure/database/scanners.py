@@ -5,8 +5,8 @@ Implementaciones específicas de escáneres de metadatos para diferentes motores
 Incluye SQL Server, MySQL y PostgreSQL.
 
 Author: Json Rivera
-Date: 2024-09-26
-Version: 1.0
+Date: 2025-09-26
+Version: 0.0.1
 """
 
 from typing import List, Tuple

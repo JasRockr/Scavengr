@@ -5,8 +5,8 @@ Módulo base para escaneo de metadatos de bases de datos.
 Define interfaces abstractas e implementaciones para diferentes motores.
 
 Author: Json Rivera
-Date: 2024-09-26
-Version: 1.0
+Date: 2025-09-26
+Version: 0.0.1
 """
 
 from abc import ABC, abstractmethod

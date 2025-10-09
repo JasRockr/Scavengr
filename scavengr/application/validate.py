@@ -11,8 +11,8 @@ Examples:
     True
 
 Author: Json Rivera
-Date: 2025-01-06
-Version: 1.0.0
+Date: 2025-09-26
+Version: 0.0.1
 """
 
 import os

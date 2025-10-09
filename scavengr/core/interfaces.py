@@ -7,6 +7,10 @@ Define contratos que deben implementar los adaptadores de infraestructura.
 Siguiendo el principio de Inversión de Dependencias (DIP):
 - El dominio define QUÉ necesita (interfaces)
 - La infraestructura implementa CÓMO lo hace (adaptadores)
+
+Author: Json Rivera
+Date: 2025-09-26
+Version: 0.0.1
 """
 from __future__ import annotations
 

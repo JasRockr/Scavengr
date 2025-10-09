@@ -7,9 +7,11 @@ Esta capa contiene los casos de uso que orquestan los componentes del dominio
 y la infraestructura para implementar las funcionalidades de la aplicación.
 
 Casos de Uso Disponibles:
+    - InitConfiguration: Inicialización y configuración del entorno
     - ExtractMetadata: Extracción de metadatos desde bases de datos
     - ValidateDBML: Validación de archivos DBML
     - GenerateDictionary: Generación de diccionarios de datos
+    - GenerateReport: Generación de informes analíticos avanzados
 
 Principios:
     - Orquestación sin lógica de negocio
@@ -28,15 +30,18 @@ Examples:
 from scavengr.application.extract import ExtractMetadata, ExtractionResult
 from scavengr.application.validate import ValidateDBML, ValidationResult, ValidationIssue
 from scavengr.application.dictionary import GenerateDictionary, DictionaryResult
+from scavengr.application.report import GenerateReport, ReportResult
 
 __all__ = [
     # Use Cases
     "ExtractMetadata",
     "ValidateDBML",
     "GenerateDictionary",
+    "GenerateReport",
     # Result Objects
     "ExtractionResult",
     "ValidationResult",
     "ValidationIssue",
     "DictionaryResult",
+    "ReportResult",
 ]

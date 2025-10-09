@@ -4,8 +4,8 @@ Parsea archivos DBML y genera una estructura de datos que representa el esquema.
 Este módulo combina las mejores características para procesar archivos DBML de manera robusta.
 
 Author: Json Rivera
-Date: 2024-09-26
-Version: 1.0
+Date: 2025-09-26
+Version: 0.0.1
 """
 
 import os
