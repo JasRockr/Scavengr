@@ -4,6 +4,7 @@
 ![Python](https://img.shields.io/badge/python-3.8%2B-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Status](https://img.shields.io/badge/status-alpha-orange.svg)
+[![PyPI version](https://badge.fury.io/py/scavengr.svg)](https://pypi.org/project/scavengr/)
 
 > *"Descubre lo que tus bases esconden."*
 
@@ -51,7 +52,15 @@ Extrae esquemas de bases de datos, genera archivos DBML compatibles con [dbdiagr
 - **Python**: 3.8 o superior (recomendado: 3.10+)
 - **pip**: Gestor de paquetes de Python
 
-### Instalación desde Fuente
+### Instalación desde PyPI
+
+La forma más sencilla de instalar **Scavengr** es directamente desde PyPI:
+
+```bash
+pip install scavengr
+```
+
+### Instalación desde Fuente - En modo Desarrollo
 
 ```bash
 # Clonar repositorio

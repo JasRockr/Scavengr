@@ -5,7 +5,11 @@
 doc/
 docs/
 documentation/
+
+# Archivos adicionales
 scavengr/_version.py
+scripts/*
+
 
 # Tests - No incluir en primera versión
 tests/
@@ -133,6 +137,8 @@ desktop.ini
 *.temp
 *.bak
 *.swp
+temp_*
+*_temp.*
 
 # === ARCHIVOS DE BASE DE DATOS LOCALES ===
 *.db
