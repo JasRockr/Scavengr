@@ -9,13 +9,13 @@ Date: 2025-09-26
 Version: 0.0.1
 """
 
-from math import log
-from typing import Dict, Any, Optional
+from typing import Any, Dict, List, Optional
 
 # Importar conectores de bases de datos
 try:
     import mysql.connector as mysql
     from mysql.connector import Error as mysql_errors
+
     MYSQL_AVAILABLE = True
 except ImportError:
     MYSQL_AVAILABLE = False
@@ -23,6 +23,7 @@ except ImportError:
 try:
     import psycopg2 as pgsql
     from psycopg2 import Error as pgsql_errors
+
     PGSQL_AVAILABLE = True
 except ImportError:
     PGSQL_AVAILABLE = False
@@ -30,11 +31,13 @@ except ImportError:
 try:
     import pyodbc as mssql
     from pyodbc import Error as mssql_errors
+
     MSSQL_AVAILABLE = True
 except ImportError:
     MSSQL_AVAILABLE = False
 
 from scavengr.config.config_manager import ConfigManager
+from scavengr.utils.constants import DatabaseDefaults
 
 
 class DatabaseConnector:
@@ -42,30 +45,31 @@ class DatabaseConnector:
     Clase base para conectores de bases de datos.
     Proporciona una interfaz común para diferentes tipos de bases de datos.
     """
-    
-    def __init__(self, config: Dict[str, Any]):
+
+    def __init__(self, config: Dict[str, Any]) -> None:
         """
         Inicializa el conector base con la configuración.
-        
+
         Args:
             config: Diccionario con la configuración de conexión
         """
         self.config = config
-        self.connection = None
-        self.cursor = None
-        
-    
-    def connect(self):
+        self.connection: Optional[Any] = None
+        self.cursor: Optional[Any] = None
+
+    def connect(self) -> Optional[Any]:
         """
         Método abstracto para establecer la conexión.
         Debe ser implementado por las clases hijas.
-        
+
         Raises:
             NotImplementedError: Esta clase base no implementa el método
         """
-        raise NotImplementedError("El método connect debe ser implementado por las clases hijas")
-    
-    def close(self):
+        raise NotImplementedError(
+            "El método connect debe ser implementado por las clases hijas"
+        )
+
+    def close(self) -> None:
         """Cierra la conexión si está abierta."""
         if self.connection:
             try:
@@ -74,46 +78,46 @@ class DatabaseConnector:
                 self.cursor = None
             except Exception as e:
                 print(f"Error al cerrar la conexión: {e}")
-    
+
     def is_connected(self) -> bool:
         """
         Verifica si la conexión está establecida.
-        
+
         Returns:
             bool: True si la conexión está activa
         """
         return self.connection is not None
-    
-    def execute_query(self, query: str, params=None):
+
+    def execute_query(self, query: str, params: Optional[List[Any]] = None) -> Any:
         """
         Ejecuta una consulta en la base de datos.
-        
+
         Args:
             query: Consulta SQL a ejecutar
             params: Parámetros para la consulta (opcional)
-            
+
         Returns:
             Resultado de la consulta
-            
+
         Raises:
             Exception: Si hay un error al ejecutar la consulta
         """
         if not self.connection:
             raise Exception("No hay una conexión establecida")
-            
+
         if not self.cursor:
             self.cursor = self.connection.cursor()
-            
+
         try:
             if params:
                 self.cursor.execute(query, params)
             else:
                 self.cursor.execute(query)
-                
+
             # Para consultas SELECT
             if query.strip().upper().startswith("SELECT"):
                 return self.cursor.fetchall()
-            
+
             # Para consultas de modificación
             self.connection.commit()
             return True
@@ -124,25 +128,27 @@ class DatabaseConnector:
 
 class MSSQLConnector(DatabaseConnector):
     """Conector específico para SQL Server."""
-    
-    def connect(self):
+
+    def connect(self) -> Optional[Any]:
         """
         Establece una conexión a SQL Server.
-        
+
         Returns:
-            Connection: Objeto de conexión a SQL Server
-            
+            Optional[Any]: Objeto de conexión a SQL Server
+
         Raises:
             ImportError: Si no está instalado el paquete pyodbc
             Exception: Si hay un error al conectar
         """
         if not MSSQL_AVAILABLE:
-            raise ImportError("El paquete pyodbc no está instalado. Instálelo con: pip install pyodbc")
-            
+            raise ImportError(
+                "El paquete pyodbc no está instalado. Instálelo con: pip install pyodbc"
+            )
+
         try:
             # Obtener driver desde configuración o usar el predeterminado
-            driver = self.config.get("DB_DRIVER", "SQL Server")
-            
+            driver = self.config.get("DB_DRIVER", DatabaseDefaults.MSSQL_DRIVER)
+
             conn_str = (
                 f"DRIVER={{{driver}}};"
                 f"SERVER={self.config['host']};"
@@ -152,7 +158,7 @@ class MSSQLConnector(DatabaseConnector):
             )
 
             self.connection = mssql.connect(conn_str)
-            
+
             # Validar la conexión
             if not self.connection:
                 raise Exception("No se pudo establecer la conexión a SQL Server.")
@@ -164,31 +170,33 @@ class MSSQLConnector(DatabaseConnector):
 
 class MySQLConnector(DatabaseConnector):
     """Conector específico para MySQL."""
-    
-    def connect(self):
+
+    def connect(self) -> Optional[Any]:
         """
         Establece una conexión a MySQL.
-        
+
         Returns:
-            Connection: Objeto de conexión a MySQL
-            
+            Optional[Any]: Objeto de conexión a MySQL
+
         Raises:
             ImportError: Si no está instalado el paquete mysql-connector-python
             Exception: Si hay un error al conectar
         """
         if not MYSQL_AVAILABLE:
-            raise ImportError("El paquete mysql-connector-python no está instalado. Instálelo con: pip install mysql-connector-python")
-            
+            raise ImportError(
+                "El paquete mysql-connector-python no está instalado. Instálelo con: pip install mysql-connector-python"
+            )
+
         try:
             # Obtener puerto desde configuración o usar el predeterminado
-            port = self.config.get("DB_PORT", 3306)
-            
+            port = self.config.get("DB_PORT", DatabaseDefaults.MYSQL_PORT)
+
             self.connection = mysql.connect(
                 host=self.config["host"],
                 port=port,
                 database=self.config["name"],
                 user=self.config["user"],
-                password=self.config["password"]
+                password=self.config["password"],
             )
             return self.connection
         except mysql_errors as e:
@@ -197,31 +205,33 @@ class MySQLConnector(DatabaseConnector):
 
 class PostgreSQLConnector(DatabaseConnector):
     """Conector específico para PostgreSQL."""
-    
-    def connect(self):
+
+    def connect(self) -> Optional[Any]:
         """
         Establece una conexión a PostgreSQL.
-        
+
         Returns:
-            Connection: Objeto de conexión a PostgreSQL
-            
+            Optional[Any]: Objeto de conexión a PostgreSQL
+
         Raises:
             ImportError: Si no está instalado el paquete psycopg2
             Exception: Si hay un error al conectar
         """
         if not PGSQL_AVAILABLE:
-            raise ImportError("El paquete psycopg2 no está instalado. Instálelo con: pip install psycopg2-binary")
-            
+            raise ImportError(
+                "El paquete psycopg2 no está instalado. Instálelo con: pip install psycopg2-binary"
+            )
+
         try:
             # Obtener puerto desde configuración o usar el predeterminado
-            port = self.config.get("DB_PORT", 5432)
-            
+            port = self.config.get("DB_PORT", DatabaseDefaults.POSTGRESQL_PORT)
+
             self.connection = pgsql.connect(
                 host=self.config["host"],
                 port=port,
                 dbname=self.config["name"],
                 user=self.config["user"],
-                password=self.config["password"]
+                password=self.config["password"],
             )
             return self.connection
         except pgsql_errors as e:
@@ -231,18 +241,18 @@ class PostgreSQLConnector(DatabaseConnector):
 def create_connector(config: Dict[str, Any]) -> DatabaseConnector:
     """
     Fábrica de conectores - crea el conector apropiado según el tipo de base de datos.
-    
+
     Args:
         config: Configuración de la conexión con la clave DB_TYPE
-        
+
     Returns:
         DatabaseConnector: Instancia del conector apropiado
-        
+
     Raises:
         ValueError: Si el tipo de base de datos no es soportado
     """
     db_type = config.get("type", "").upper()
-    
+
     if db_type == "MSSQL":
         return MSSQLConnector(config)
     elif db_type == "MYSQL":
@@ -258,53 +268,56 @@ class ConnectionManager:
     Gestor de conexiones para Scavengr.
     Maneja la creación, obtención y cierre de conexiones a bases de datos.
     """
-    
-    def __init__(self, config_path: Optional[str] = None):
+
+    def __init__(self, config_path: Optional[str] = None) -> None:
         """
         Inicializa el gestor de conexiones.
-        
+
         Args:
             config_path: Ruta al archivo de configuración (opcional)
         """
         self.config_manager = ConfigManager(config_path)
-        self.connections = {}
-    
-    def get_connection(self, connection_name: str):
+        self.connections: Dict[str, DatabaseConnector] = {}
+
+    def get_connection(self, connection_name: str) -> Any:
         """
         Obtiene una conexión a una base de datos específica.
         Si la conexión ya existe, la devuelve; si no, la crea.
-        
+
         Args:
             connection_name: Nombre de la conexión en el archivo de configuración
-            
+
         Returns:
-            Connection: Objeto de conexión a la base de datos
-            
+            Any: Objeto de conexión a la base de datos
+
         Raises:
             KeyError: Si no existe la conexión especificada
             Exception: Si hay un error al establecer la conexión
         """
         # Si ya existe una conexión activa con ese nombre, la devuelve
-        if connection_name in self.connections and self.connections[connection_name].is_connected():
+        if (
+            connection_name in self.connections
+            and self.connections[connection_name].is_connected()
+        ):
             return self.connections[connection_name].connection
-        
+
         # Obtiene la configuración y crea el conector
         db_config = self.config_manager.get_db_config(connection_name)
         connector = create_connector(db_config)
-        
+
         # Establece la conexión y la guarda
         connection = connector.connect()
         self.connections[connection_name] = connector
-        
+
         return connection
-    
+
     def close_connection(self, connection_name: str) -> bool:
         """
         Cierra una conexión específica.
-        
+
         Args:
             connection_name: Nombre de la conexión a cerrar
-            
+
         Returns:
             bool: True si la conexión se cerró correctamente
         """
@@ -313,8 +326,8 @@ class ConnectionManager:
             del self.connections[connection_name]
             return True
         return False
-    
-    def close_all_connections(self):
+
+    def close_all_connections(self) -> None:
         """Cierra todas las conexiones abiertas."""
         for connector in self.connections.values():
             connector.close()

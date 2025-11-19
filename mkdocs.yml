@@ -1,0 +1,130 @@
+site_name: Scavengr Documentation
+site_description: Herramienta CLI para extraer, validar y documentar metadatos de bases de datos
+site_author: Jason Rivera
+site_url: https://scavengr.jsonrivera.dev/docs/
+
+repo_name: JasRockr/Scavengr
+repo_url: https://github.com/JasRockr/Scavengr
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  language: es
+  palette:
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: cyan
+      toggle:
+        icon: material/brightness-7
+        name: Cambiar a modo oscuro
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: cyan
+      toggle:
+        icon: material/brightness-4
+        name: Cambiar a modo claro
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search:
+      lang: es
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            docstring_section_style: table
+            show_root_heading: true
+            show_root_full_path: false
+            show_source: true
+            show_category_heading: true
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            members_order: source
+            group_by_category: true
+            show_signature_annotations: true
+            separate_signature: true
+            line_length: 80
+            merge_init_into_class: true
+            docstring_options:
+              ignore_init_summary: true
+            filters:
+              - "!^_"  # Excluir métodos/atributos privados
+              - "^__init__$"  # Incluir __init__
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+      toc_depth: 3
+
+nav:
+  - Inicio: index.md
+  - Guía de Uso:
+      - Instalación: guide/installation.md
+      - Configuración: guide/configuration.md
+      - Comandos CLI: guide/commands.md
+  - API Reference:
+      - Core:
+          - Entidades: api/core/entities.md
+          - Interfaces: api/core/interfaces.md
+          - Servicios: api/core/services.md
+      - Application:
+          - Extract: api/application/extract.md
+          - Validate: api/application/validate.md
+          - Dictionary: api/application/dictionary.md
+          - Report: api/application/report.md
+      - Infrastructure:
+          - Database:
+              - Connector: api/infrastructure/database/connector.md
+              - Scanners: api/infrastructure/database/scanners.md
+          - Exporters: api/infrastructure/exporters/output_writer.md
+          - Formatters: api/infrastructure/formatters/dbml_formatter.md
+          - Parsers: api/infrastructure/parsers/dbml_parser.md
+      - Utils:
+          - Constants: api/utils/constants.md
+          - Exceptions: api/utils/exceptions.md
+          - Validators: api/utils/validators.md
+  - Contribuir: contributing.md
+  - Changelog: changelog.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/JasRockr/Scavengr
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/scavengr/

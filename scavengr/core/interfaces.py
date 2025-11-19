@@ -12,10 +12,12 @@ Author: Json Rivera
 Date: 2025-09-26
 Version: 0.0.1
 """
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, List
+from pathlib import Path
+from typing import Any, List, Optional, Tuple, Union
 
 from scavengr.core.entities import DatabaseSchema
 
@@ -40,29 +42,29 @@ class IMetadataScanner(ABC):
         pass
 
     @abstractmethod
-    def get_columns(self) -> List[tuple]:
+    def get_columns(self) -> List[Tuple[str, str, bool, bool, Optional[str]]]:
         """Obtiene información de columnas de las tablas.
 
         Returns:
-            List[tuple]: Lista de tuplas con información de columnas.
+            List[Tuple]: Lista de tuplas con (table, column, is_pk, is_fk, default).
         """
         pass
 
     @abstractmethod
-    def get_primary_keys(self) -> List[tuple]:
+    def get_primary_keys(self) -> List[Tuple[str, str]]:
         """Obtiene información de claves primarias.
 
         Returns:
-            List[tuple]: Lista de tuplas con información de PKs.
+            List[Tuple]: Lista de tuplas con (table, column).
         """
         pass
 
     @abstractmethod
-    def get_foreign_keys(self) -> List[tuple]:
+    def get_foreign_keys(self) -> List[Tuple[str, str, str, str]]:
         """Obtiene información de claves foráneas.
 
         Returns:
-            List[tuple]: Lista de tuplas con información de FKs.
+            List[Tuple]: Lista de tuplas con (table, column, ref_table, ref_column).
         """
         pass
 
@@ -79,7 +81,7 @@ class IParser(ABC):
         """Parsea contenido y retorna esquema normalizado.
 
         Args:
-            content: Contenido del archivo a parsear.
+            content (str): Contenido del archivo a parsear.
 
         Returns:
             DatabaseSchema: Esquema parseado y normalizado.
@@ -91,11 +93,11 @@ class IParser(ABC):
         pass
 
     @abstractmethod
-    def parse_file(self, file_path: str) -> DatabaseSchema:
+    def parse_file(self, file_path: Union[str, Path]) -> DatabaseSchema:
         """Parsea un archivo y retorna esquema normalizado.
 
         Args:
-            file_path: Ruta al archivo a parsear.
+            file_path (Union[str, Path]): Ruta al archivo a parsear.
 
         Returns:
             DatabaseSchema: Esquema parseado y normalizado.
@@ -119,7 +121,7 @@ class IFormatter(ABC):
         """Formatea un esquema a un formato específico.
 
         Args:
-            schema: Esquema a formatear.
+            schema (DatabaseSchema): Esquema a formatear.
 
         Returns:
             str: Contenido formateado como string.
@@ -138,13 +140,13 @@ class IExporter(ABC):
     """
 
     @abstractmethod
-    def export(self, data: Any, output_path: str, format: str) -> None:
+    def export(self, data: Any, output_path: Union[str, Path], format: str) -> None:
         """Exporta datos al formato y ubicación especificados.
 
         Args:
-            data: Datos a exportar.
-            output_path: Ruta del archivo de salida.
-            format: Formato de exportación (csv, excel, json).
+            data (Any): Datos a exportar.
+            output_path (Union[str, Path]): Ruta del archivo de salida.
+            format (str): Formato de exportación (csv, excel, json).
 
         Raises:
             InvalidFormatError: Si el formato no es soportado.
@@ -158,7 +160,7 @@ class IExporter(ABC):
         """Verifica si el exportador soporta un formato.
 
         Args:
-            format: Formato a verificar.
+            format (str): Formato a verificar.
 
         Returns:
             bool: True si el formato es soportado.

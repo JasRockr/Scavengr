@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scavengr - Herramienta Python para Extracción de Metadatos de Bases de Datos</title>
+    <meta name="description" content="Scavengr es una herramienta CLI para extraer, validar y documentar metadatos de bases de datos con inteligencia automática">
+    <meta name="author" content="Jason Rivera">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #7c3aed;
+            --accent: #06b6d4;
+            --text: #1f2937;
+            --text-light: #6b7280;
+            --bg: #ffffff;
+            --bg-alt: #f8fafc;
+            --border: #e5e7eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background: var(--bg);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 4rem 0;
+            text-align: center;
+        }
+
+        .badges {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .hero {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            line-height: 1.1;
+        }
+
+        .hero .tagline {
+            font-size: 1.5rem;
+            font-weight: 300;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .btn-primary {
+            background: white;
+            color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            background: var(--bg-alt);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            border-color: white;
+        }
+
+        .btn-secondary:hover {
+            background: white;
+            color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        /* Features */
+        .section {
+            padding: 5rem 0;
+        }
+
+        .section-alt {
+            background: var(--bg-alt);
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .section-header h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text);
+        }
+
+        .section-header p {
+            font-size: 1.25rem;
+            color: var(--text-light);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text);
+        }
+
+        .feature-card p {
+            color: var(--text-light);
+        }
+
+        /* Workflow */
+        .workflow-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            counter-reset: step;
+        }
+
+        .step {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            position: relative;
+            counter-increment: step;
+        }
+
+        .step::before {
+            content: counter(step);
+            position: absolute;
+            top: -1rem;
+            left: 2rem;
+            background: var(--primary);
+            color: white;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.125rem;
+        }
+
+        .step h3 {
+            margin-bottom: 1rem;
+            color: var(--text);
+        }
+
+        /* Code Blocks */
+        .code-block {
+            background: #1f2937;
+            color: #e5e7eb;
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .code-block code {
+            background: none;
+            padding: 0;
+        }
+
+        .code-comment {
+            color: #6b7280;
+        }
+
+        .code-keyword {
+            color: #f472b6;
+        }
+
+        .code-string {
+            color: #84cc16;
+        }
+
+        .code-function {
+            color: #60a5fa;
+        }
+
+        /* Installation */
+        .installation-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .install-option {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .install-option h3 {
+            margin-bottom: 1rem;
+            color: var(--text);
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--text);
+            color: white;
+            padding: 3rem 0;
+            text-align: center;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: white;
+            text-decoration: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            opacity: 0.8;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero .tagline {
+                font-size: 1.25rem;
+            }
+
+            .section-header h2 {
+                font-size: 2rem;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                width: 100%;
+                max-width: 300px;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="badges">
+                <span class="badge">Python 3.8+</span>
+                <span class="badge">MIT License</span>
+                <span class="badge">Alpha v0.0.4</span>
+                <span class="badge">282 tests</span>
+                <span class="badge">74% coverage</span>
+            </div>
+            <div class="hero">
+                <h1>🗃️ Scavengr</h1>
+                <p class="tagline">"Descubre lo que tus bases esconden."</p>
+                <p>Herramienta CLI para extraer, validar y documentar metadatos de bases de datos con inteligencia automática 🧠✨</p>
+                <div class="cta-buttons">
+                    <a href="https://scavengr.jsonrivera.dev/docs/" class="btn btn-primary">
+                        <span>📚 Documentación</span>
+                    </a>
+                    <a href="#installation" class="btn btn-primary">
+                        <span>🚀 Empezar</span>
+                    </a>
+                    <a href="https://github.com/JasRockr/Scavengr" class="btn btn-secondary">
+                        <span>📁 GitHub</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Features -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2>🚀 Características Principales</h2>
+                <p>Extrae esquemas, genera DBML, crea diccionarios y produce informes analíticos</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🔍</div>
+                    <h3>Extracción de Metadatos</h3>
+                    <p>Soporte para PostgreSQL, MySQL/MariaDB y SQL Server. Extracción completa de tablas, columnas, tipos de datos, relaciones e índices.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Diccionarios de Datos Profesionales</h3>
+                    <p>Formato Excel avanzado con 19 campos especializados. Análisis de sensibilidad automático y descripciones inteligentes.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">✅</div>
+                    <h3>Validación de Esquemas DBML</h3>
+                    <p>Validación exhaustiva de sintaxis, estructura y consistencia. Detección de errores en tablas, relaciones y claves. Validaciones proactivas de calidad (CamelCase, tipos, índices, autoreferences).</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📈</div>
+                    <h3>Reportes Analíticos</h3>
+                    <p>Score de calidad en 7 dimensiones. Análisis estadístico y recomendaciones priorizadas por impacto.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Workflow -->
+    <section class="section section-alt">
+        <div class="container">
+            <div class="section-header">
+                <h2>✅ Flujo de Trabajo Típico</h2>
+                <p>Configuración simple y comandos intuitivos</p>
+            </div>
+            <div class="workflow-steps">
+                <div class="step">
+                    <h3>1. Configuración Inicial</h3>
+                    <div class="code-block">
+                        <code><span class="code-comment"># Una sola vez</span><br>scavengr init</code>
+                    </div>
+                </div>
+                <div class="step">
+                    <h3>2. Extraer Esquema</h3>
+                    <div class="code-block">
+                        <code>scavengr extract -o schema.dbml</code>
+                    </div>
+                </div>
+                <div class="step">
+                    <h3>3. Validar</h3>
+                    <div class="code-block">
+                        <code>scavengr validate -i schema.dbml</code>
+                    </div>
+                </div>
+                <div class="step">
+                    <h3>4. Documentar</h3>
+                    <div class="code-block">
+                        <code>scavengr dictionary -i schema.dbml -o dict.xlsx</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Installation -->
+    <section id="installation" class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2>⚡ Instalación</h2>
+                <p>Múltiples formas de instalar y comenzar a usar Scavengr</p>
+            </div>
+            <div class="installation-options">
+                <div class="install-option">
+                    <h3>Desde PyPI (Recomendado)</h3>
+                    <div class="code-block">
+                        <code><span class="code-comment"># Instalación básica</span><br>pip install scavengr<br><br><span class="code-comment"># Verificar instalación</span><br>scavengr --version<br><br><span class="code-comment"># Configuración inicial</span><br>scavengr init</code>
+                    </div>
+                </div>
+                <div class="install-option">
+                    <h3>Desde Fuente (Desarrollo)</h3>
+                    <div class="code-block">
+                        <code><span class="code-comment"># Clonar repositorio</span><br>git clone https://github.com/JasRockr/Scavengr.git<br>cd Scavengr<br><br><span class="code-comment"># Instalar en modo desarrollo</span><br>pip install -e .</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Usage -->
+    <section class="section section-alt">
+        <div class="container">
+            <div class="section-header">
+                <h2>🎯 Uso Básico</h2>
+                <p>Comandos principales y ejemplos prácticos</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h3>Configuración Rápida</h3>
+                    <div class="code-block">
+                        <code><span class="code-comment"># Generar archivo .env automáticamente</span><br>scavengr init<br><br><span class="code-comment"># O configuración global</span><br>scavengr init --global</code>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <h3>Extraer y Validar</h3>
+                    <div class="code-block">
+                        <code><span class="code-comment"># Extraer esquema completo</span><br>scavengr extract -o mi-esquema.dbml<br><br><span class="code-comment"># Validar estructura</span><br>scavengr validate -i mi-esquema.dbml</code>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <h3>Generar Documentación</h3>
+                    <div class="code-block">
+                        <code><span class="code-comment"># Diccionario de datos</span><br>scavengr dictionary -i schema.dbml -o diccionario.xlsx<br><br><span class="code-comment"># Reporte analítico</span><br>scavengr report -i schema.dbml -o reporte.xlsx</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quality Assurance -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2>✅ Validación y Calidad de Código (v0.0.4)</h2>
+                <p>Type hints completos • 0 errores mypy • 282/282 tests pasando • 74% coverage</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h3>🔍 Type Checking</h3>
+                    <div class="code-block">
+                        <code><span class="code-comment"># Validar tipos de datos (mypy strict)</span><br>python -m mypy scavengr/ --strict<br><br><span class="code-comment"># Resultado esperado:</span><br><span class="code-string">Success: no issues found</span></code>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <h3>🧪 Ejecutar Tests</h3>
+                    <div class="code-block">
+                        <code><span class="code-comment"># Tests unitarios e integración</span><br>python -m pytest tests/ -v<br><br><span class="code-comment"># Con cobertura</span><br>python -m pytest tests/ --cov=scavengr</code>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <h3>📊 Validación Completa</h3>
+                    <div class="code-block">
+                        <code><span class="code-comment"># Type checking + Tests + Linting</span><br>python -m mypy scavengr/ --strict && \<br>python -m pytest tests/ -v && \<br>python -m flake8 scavengr/</code>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <h3>🎨 Formateo Automático</h3>
+                    <div class="code-block">
+                        <code><span class="code-comment"># Black - Formateador</span><br>python -m black scavengr/<br><br><span class="code-comment"># isort - Organizar imports</span><br>python -m isort scavengr/</code>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <h3>📈 Análisis de Coverage</h3>
+                    <div class="code-block">
+                        <code><span class="code-comment"># Generar reporte HTML</span><br>python -m pytest tests/ \<br>  --cov=scavengr \<br>  --cov-report=html<br><br><span class="code-comment"># Abrir: htmlcov/index.html</span></code>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <h3>🚀 Instalación Desarrollo</h3>
+                    <div class="code-block">
+                        <code><span class="code-comment"># Con todas las dependencias</span><br>pip install -e ".[dev]"<br><br><span class="code-comment"># Pre-commit hooks</span><br>pre-commit install</code>
+                    </div>
+                </div>
+            </div>
+            <div style="margin-top: 3rem; background: white; padding: 2rem; border-radius: 12px; border: 2px solid var(--accent);">
+                <h3 style="margin-bottom: 1rem;">📋 Métricas de Calidad</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+                    <div style="text-align: center;">
+                        <div style="font-size: 2rem; font-weight: bold; color: var(--success);">0</div>
+                        <div style="color: var(--text-light);">Errores Mypy</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 2rem; font-weight: bold; color: var(--success);">51/51</div>
+                        <div style="color: var(--text-light);">Tests Pasando</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 2rem; font-weight: bold; color: var(--success);">100%</div>
+                        <div style="color: var(--text-light);">Type Coverage</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 2rem; font-weight: bold; color: var(--success);">33</div>
+                        <div style="color: var(--text-light);">Archivos Tipados</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-links">
+                <a href="https://scavengr.jsonrivera.dev/docs/">📚 Documentación</a>
+                <a href="https://github.com/JasRockr/Scavengr">📁 Repositorio</a>
+                <a href="https://pypi.org/project/scavengr">📦 PyPI</a>
+                <a href="mailto:jsonrivera@proton.me">📧 Contacto</a>
+                <a href="https://github.com/JasRockr/Scavengr/issues">🐛 Reportar Issues</a>
+            </div>
+            <p>📄 Licencia MIT - Hecho con Python y mucho ☕ para revelar los secretos de tus bases de datos</p>
+            <p>✨ Por Jason Rivera (@JasRockr)</p>
+        </div>
+    </footer>
+</body>
+</html>

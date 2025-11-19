@@ -5,14 +5,14 @@ Adaptadores de bases de datos.
 Implementa interfaces del dominio para conectores y scanners.
 """
 
+from scavengr.infrastructure.database.base_scanner import MetadataScanner
 from scavengr.infrastructure.database.connector import (
     DatabaseConnector,
-    PostgreSQLConnector,
-    MySQLConnector,
     MSSQLConnector,
+    MySQLConnector,
+    PostgreSQLConnector,
     create_connector,
 )
-from scavengr.infrastructure.database.base_scanner import MetadataScanner
 from scavengr.infrastructure.database.scanners import (
     MSSQLScanner,
     MySQLScanner,

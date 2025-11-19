@@ -27,10 +27,14 @@ Examples:
     True
 """
 
-from scavengr.application.extract import ExtractMetadata, ExtractionResult
-from scavengr.application.validate import ValidateDBML, ValidationResult, ValidationIssue
-from scavengr.application.dictionary import GenerateDictionary, DictionaryResult
+from scavengr.application.dictionary import DictionaryResult, GenerateDictionary
+from scavengr.application.extract import ExtractionResult, ExtractMetadata
 from scavengr.application.report import GenerateReport, ReportResult
+from scavengr.application.validate import (
+    ValidateDBML,
+    ValidationIssue,
+    ValidationResult,
+)
 
 __all__ = [
     # Use Cases

@@ -10,12 +10,13 @@ Author: Json Rivera
 Date: 2025-10-09
 Version: 0.0.3
 """
+
 from __future__ import annotations
 
 import logging
-import sys
 import os
-from typing import Optional
+import sys
+from typing import Any, Optional
 
 __all__ = ["setup_logging", "ColorFormatter", "supports_color", "DEFAULT_LOG_FORMAT"]
 
@@ -34,15 +35,20 @@ class ColorFormatter(logging.Formatter):
     """
 
     COLORS = {
-        'DEBUG': '\033[36m',      # Cyan
-        'INFO': '\033[32m',       # Green
-        'WARNING': '\033[33m',    # Yellow
-        'ERROR': '\033[31m',      # Red
-        'CRITICAL': '\033[1;41m', # Bold White on Red background
+        "DEBUG": "\033[36m",  # Cyan
+        "INFO": "\033[32m",  # Green
+        "WARNING": "\033[33m",  # Yellow
+        "ERROR": "\033[31m",  # Red
+        "CRITICAL": "\033[1;41m",  # Bold White on Red background
     }
-    RESET = '\033[0m'
+    RESET = "\033[0m"
 
-    def __init__(self, fmt: Optional[str] = None, datefmt: Optional[str] = None, use_color: bool = True):
+    def __init__(
+        self,
+        fmt: Optional[str] = None,
+        datefmt: Optional[str] = None,
+        use_color: bool = True,
+    ):
         super().__init__(fmt=fmt, datefmt=datefmt)
         self.use_color = use_color
 
@@ -64,7 +70,9 @@ def supports_color() -> bool:
         if sys.platform != "win32":
             return sys.stdout.isatty()
         # En Windows, comprobar algunas variables comunes (WT = Windows Terminal)
-        return bool(os.getenv("ANSICON") or os.getenv("WT_SESSION") or os.getenv("TERM"))
+        return bool(
+            os.getenv("ANSICON") or os.getenv("WT_SESSION") or os.getenv("TERM")
+        )
     except Exception:
         return False
 
@@ -75,7 +83,7 @@ def setup_logging(
     log_file: Optional[str] = None,
     file_level: int = logging.INFO,
     force_color: Optional[bool] = None,
-    fmt: Optional[str] = None
+    fmt: Optional[str] = None,
 ) -> logging.Logger:
     """Configura el sistema de logging de forma centralizada con soporte de color.
 
@@ -101,67 +109,83 @@ def setup_logging(
 
         >>> # Forzar colores
         >>> logger = setup_logging(force_color=True)
-        
+
         >>> # Con formato personalizado
         >>> logger = setup_logging(fmt="%(levelname)s: %(message)s")
     """
 
-    level = logging.DEBUG if verbose else logging.INFO
-    
+    level: int = logging.DEBUG if verbose else logging.INFO
+
     # Configurar el logger raíz para que todos los sub-loggers hereden la configuración
-    root_logger = logging.getLogger()
+    root_logger: logging.Logger = logging.getLogger()
     root_logger.setLevel(level)
-    
+
     # También configurar el logger específico de la aplicación
-    logger = logging.getLogger(name)
+    logger: logging.Logger = logging.getLogger(name)
     logger.setLevel(level)
 
     # Evitar handlers duplicados si se llama varias veces
     if logger.hasHandlers():
         logger.handlers.clear()
-    
+
     # Limpiar handlers del logger raíz también para evitar duplicados
     if root_logger.hasHandlers():
         root_logger.handlers.clear()
 
     # Determinar si forzar color por variable de entorno o parámetro
-    env_force = os.getenv("SCAVENGR_FORCE_COLOR")
+    env_force: Optional[str] = os.getenv("SCAVENGR_FORCE_COLOR")
     if force_color is None and env_force is not None:
-        env_val = env_force.lower()
+        env_val: str = env_force.lower()
         if env_val in ("1", "true", "yes", "on"):
             force_color = True
         elif env_val in ("0", "false", "no", "off"):
             force_color = False
 
-    use_color = bool(force_color) if force_color is not None else supports_color()
+    use_color: bool = bool(force_color) if force_color is not None else supports_color()
 
-    log_format = fmt if fmt is not None else DEFAULT_LOG_FORMAT
-    formatter = ColorFormatter(fmt=log_format, use_color=use_color)
+    log_format: str = fmt if fmt is not None else DEFAULT_LOG_FORMAT
+    formatter: ColorFormatter = ColorFormatter(fmt=log_format, use_color=use_color)
 
     # StreamHandler (consola) con soporte UTF-8 en Windows
+    console_handler: logging.StreamHandler[Any]
     try:
         # Intentar configurar UTF-8 en Windows
         if sys.platform == "win32":
+            # import codecs  # Commented out - not used
             import io
-            console_handler = logging.StreamHandler(
-                io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+
+            # Usar codec UTF-8 con manejo de errores para PowerShell
+            stream: io.TextIOWrapper = io.TextIOWrapper(
+                sys.stdout.buffer,
+                encoding="utf-8",
+                errors="replace",
+                line_buffering=True,
             )
+            console_handler = logging.StreamHandler(stream)
         else:
             console_handler = logging.StreamHandler(sys.stdout)
     except (AttributeError, OSError):
-        # Fallback: usar StreamHandler normal
+        # Fallback: usar StreamHandler normal con encoding explícito
         console_handler = logging.StreamHandler(sys.stdout)
-    
+        # Intentar forzar encoding UTF-8 si está disponible
+        if hasattr(sys.stdout, "reconfigure"):
+            try:
+                sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+            except Exception:
+                pass
+
     console_handler.setFormatter(formatter)
     console_handler.setLevel(level)
-    
+
     # Agregar handler solo al logger raíz para que todos los sub-loggers lo hereden
     root_logger.addHandler(console_handler)
 
     # Handler opcional a archivo
     if log_file:
-        file_handler = logging.FileHandler(log_file, encoding="utf-8")
-        file_formatter = logging.Formatter(log_format)
+        file_handler: logging.FileHandler = logging.FileHandler(
+            log_file, encoding="utf-8"
+        )
+        file_formatter: logging.Formatter = logging.Formatter(log_format)
         file_handler.setFormatter(file_formatter)
         file_handler.setLevel(file_level)
         root_logger.addHandler(file_handler)
@@ -173,7 +197,7 @@ def setup_logging(
 
 if __name__ == "__main__":
     # Uso de demostración
-    log = setup_logging(verbose=True, force_color=True)
+    log: logging.Logger = setup_logging(verbose=True, force_color=True)
     log.debug("Depuración detallada")
     log.info("Proceso iniciado correctamente")
     log.warning("Advertencia de prueba")

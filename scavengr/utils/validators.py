@@ -13,8 +13,8 @@ import os
 from pathlib import Path
 from typing import Optional
 
-from .exceptions import FileNotFoundError, InvalidFormatError, ValidationError
 from .constants import Formats
+from .exceptions import FileNotFoundError, InvalidFormatError, ValidationError
 
 __all__ = [
     "validate_file_exists",
@@ -78,17 +78,16 @@ def validate_output_format(filepath: str, format_override: Optional[str] = None)
     # Detectar por extensión
     extension = Path(filepath).suffix.lower()
     format_map = {
-        '.csv': Formats.CSV,
-        '.xlsx': Formats.EXCEL,
-        '.xls': Formats.EXCEL,
-        '.json': Formats.JSON
+        ".csv": Formats.CSV,
+        ".xlsx": Formats.EXCEL,
+        ".xls": Formats.EXCEL,
+        ".json": Formats.JSON,
     }
 
     detected_format = format_map.get(extension)
     if not detected_format:
         raise InvalidFormatError(
-            extension,
-            [f"{fmt} ({ext})" for ext, fmt in format_map.items()]
+            extension, [f"{fmt} ({ext})" for ext, fmt in format_map.items()]
         )
 
     return detected_format
@@ -152,7 +151,7 @@ def validate_input_file_format(filepath: str) -> Path:
 
     # Validar extensión
     extension = path_obj.suffix.lower()
-    supported_extensions = ['.dbml', '.sql', '.ddl']
+    supported_extensions = [".dbml", ".sql", ".ddl"]
 
     if extension not in supported_extensions:
         raise ValidationError(

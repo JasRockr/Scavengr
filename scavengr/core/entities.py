@@ -15,10 +15,11 @@ Author: Json Rivera
 Date: 2025-09-26
 Version: 0.0.1
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 
 @dataclass
@@ -58,6 +59,7 @@ class Table:
         schema: Nombre del esquema al que pertenece la tabla.
         note: Nota o comentario descriptivo sobre la tabla.
         is_master: True si la tabla es maestra (tablas de referencia).
+        indexes: Lista de índices definidos en la tabla.
     """
 
     name: str
@@ -65,6 +67,7 @@ class Table:
     schema: Optional[str] = None
     note: Optional[str] = None
     is_master: bool = False
+    indexes: List[Index] = field(default_factory=list)
 
 
 @dataclass
@@ -95,12 +98,14 @@ class Index:
         columns: Lista de columnas que componen el índice.
         name: Nombre del índice (opcional).
         unique: True si el índice es único.
+        index_type: Tipo de índice (btree, hash, etc.). Opcional.
     """
 
     table: str
     columns: List[str]
     name: Optional[str] = None
     unique: bool = False
+    index_type: Optional[str] = None
 
 
 @dataclass
@@ -119,4 +124,4 @@ class DatabaseSchema:
     relationships: List[Relationship] = field(default_factory=list)
     indexes: List[Index] = field(default_factory=list)
     name: Optional[str] = None
-    metadata: dict = field(default_factory=dict)
+    metadata: Dict[str, Any] = field(default_factory=dict)
