@@ -403,37 +403,127 @@ if ($Choice -eq "c") {
 
             Write-Host "✅ Tag v$NewVersion creado exitosamente" -ForegroundColor Green
 
-            # Git Push (main)
-            Write-Host "`n4️⃣  Pusheando commits a origin/main..." -ForegroundColor Cyan
-            & git push origin main
+            # Detectar si la rama main tiene protecciones (requiere PR)
+            Write-Host "`n4️⃣  Verificando protecciones de rama..." -ForegroundColor Cyan
 
-            if ($LASTEXITCODE -ne 0) {
-                Write-Host "`n❌ ERROR: No se pudo pushear a origin/main" -ForegroundColor Red
-                Write-Host "   El commit y tag existen localmente pero no se pushearon." -ForegroundColor Yellow
-                Write-Host "   Puedes pushear manualmente: git push origin main" -ForegroundColor Gray
-                throw "Error al pushear commits a origin/main"
+            $CurrentBranch = git rev-parse --abbrev-ref HEAD
+            $NeedsPR = $false
+
+            # Intentar push para detectar protecciones
+            Write-Host "   Verificando si se requiere Pull Request..." -ForegroundColor Gray
+            $TestPush = git push origin $CurrentBranch --dry-run 2>&1
+
+            if ($TestPush -match "protected" -or $TestPush -match "rule violations" -or $TestPush -match "pull request") {
+                $NeedsPR = $true
+                Write-Host "   ⚠️  Rama 'main' protegida - se requiere Pull Request" -ForegroundColor Yellow
+            } else {
+                Write-Host "   ✅ Push directo permitido" -ForegroundColor Green
             }
 
-            Write-Host "✅ Commits pusheados a origin/main" -ForegroundColor Green
+            if ($NeedsPR) {
+                # Crear rama de release y pushear
+                $ReleaseBranch = "release/v$NewVersion"
 
-            # Git Push (tags)
-            Write-Host "`n5️⃣  Pusheando tag v$NewVersion a origin..." -ForegroundColor Cyan
-            & git push origin "v$NewVersion"
+                Write-Host "`n📋 ESTRATEGIA: Crear Pull Request (rama protegida detectada)" -ForegroundColor Cyan
+                Write-Host "`n5️⃣  Creando rama de release: $ReleaseBranch..." -ForegroundColor Cyan
 
-            if ($LASTEXITCODE -ne 0) {
-                Write-Host "`n❌ ERROR: No se pudo pushear el tag" -ForegroundColor Red
-                Write-Host "   El tag existe localmente pero no se pusheó al remoto." -ForegroundColor Yellow
-                Write-Host "   Puedes pushear manualmente: git push origin v$NewVersion" -ForegroundColor Gray
-                throw "Error al pushear tag v$NewVersion"
+                # Crear rama de release desde el commit actual
+                & git checkout -b $ReleaseBranch
+
+                if ($LASTEXITCODE -ne 0) {
+                    Write-Host "`n❌ ERROR: No se pudo crear la rama $ReleaseBranch" -ForegroundColor Red
+                    throw "Error al crear rama de release"
+                }
+
+                Write-Host "✅ Rama $ReleaseBranch creada" -ForegroundColor Green
+
+                # Pushear rama de release
+                Write-Host "`n6️⃣  Pusheando rama $ReleaseBranch a origin..." -ForegroundColor Cyan
+                & git push origin $ReleaseBranch
+
+                if ($LASTEXITCODE -ne 0) {
+                    Write-Host "`n❌ ERROR: No se pudo pushear la rama $ReleaseBranch" -ForegroundColor Red
+                    throw "Error al pushear rama de release"
+                }
+
+                Write-Host "✅ Rama $ReleaseBranch pusheada a origin" -ForegroundColor Green
+
+                # Pushear tag
+                Write-Host "`n7️⃣  Pusheando tag v$NewVersion..." -ForegroundColor Cyan
+                & git push origin "v$NewVersion"
+
+                if ($LASTEXITCODE -ne 0) {
+                    Write-Host "`n⚠️  ADVERTENCIA: No se pudo pushear el tag" -ForegroundColor Yellow
+                    Write-Host "   Puedes pushearlo después del merge: git push origin v$NewVersion" -ForegroundColor Gray
+                } else {
+                    Write-Host "✅ Tag v$NewVersion pusheado" -ForegroundColor Green
+                }
+
+                # Volver a main
+                & git checkout main
+
+                # Información de Pull Request
+                Write-Host "`n╔════════════════════════════════════════════════════════════════╗" -ForegroundColor Green
+                Write-Host "║  ✅ RAMA DE RELEASE CREADA - REQUIERE PULL REQUEST            ║" -ForegroundColor Green
+                Write-Host "╚════════════════════════════════════════════════════════════════╝" -ForegroundColor Green
+
+                Write-Host "`n📋 Próximos pasos:" -ForegroundColor Cyan
+                Write-Host "   1. Crear Pull Request en GitHub:" -ForegroundColor White
+                Write-Host "      Base: main ← Compare: $ReleaseBranch" -ForegroundColor Gray
+                Write-Host "      URL: https://github.com/JasRockr/Scavengr/compare/$ReleaseBranch" -ForegroundColor Gray
+
+                Write-Host "`n   2. Esperar a que pasen los checks de CI/CD:" -ForegroundColor White
+                Write-Host "      • Tests unitarios" -ForegroundColor Gray
+                Write-Host "      • Linting (flake8)" -ForegroundColor Gray
+                Write-Host "      • Pre-commit hooks" -ForegroundColor Gray
+                Write-Host "      • Verificación de cobertura" -ForegroundColor Gray
+
+                Write-Host "`n   3. Mergear el PR cuando los checks pasen" -ForegroundColor White
+
+                Write-Host "`n   4. Después del merge, continuar con build y publicación:" -ForegroundColor White
+                Write-Host "      git checkout main" -ForegroundColor Gray
+                Write-Host "      git pull origin main" -ForegroundColor Gray
+                Write-Host "      .\scripts\publish.ps1  (continuar desde paso 3)" -ForegroundColor Gray
+
+                Write-Host "`n💡 Por ahora, el script se detendrá aquí." -ForegroundColor Cyan
+                Write-Host "   Después del merge del PR, vuelve a ejecutarlo para build y PyPI." -ForegroundColor Gray
+
+                Write-Host "`n⏸️  Script pausado - Esperando merge del PR..." -ForegroundColor Yellow
+                exit 0
+
+            } else {
+                # Push directo (sin protecciones)
+                Write-Host "`n5️⃣  Pusheando commits a origin/main..." -ForegroundColor Cyan
+                & git push origin main
+
+                if ($LASTEXITCODE -ne 0) {
+                    Write-Host "`n❌ ERROR: No se pudo pushear a origin/main" -ForegroundColor Red
+                    Write-Host "   El commit y tag existen localmente pero no se pushearon." -ForegroundColor Yellow
+                    Write-Host "   Puedes pushear manualmente: git push origin main" -ForegroundColor Gray
+                    throw "Error al pushear commits a origin/main"
+                }
+
+                Write-Host "✅ Commits pusheados a origin/main" -ForegroundColor Green
+
+                # Git Push (tags)
+                Write-Host "`n6️⃣  Pusheando tag v$NewVersion a origin..." -ForegroundColor Cyan
+                & git push origin "v$NewVersion"
+
+                if ($LASTEXITCODE -ne 0) {
+                    Write-Host "`n❌ ERROR: No se pudo pushear el tag" -ForegroundColor Red
+                    Write-Host "   El tag existe localmente pero no se pusheó al remoto." -ForegroundColor Yellow
+                    Write-Host "   Puedes pushear manualmente: git push origin v$NewVersion" -ForegroundColor Gray
+                    throw "Error al pushear tag v$NewVersion"
+                }
+
+                Write-Host "✅ Tag v$NewVersion pusheado a origin" -ForegroundColor Green
+
+                Write-Host "`n╔════════════════════════════════════════════════════════════════╗" -ForegroundColor Green
+                Write-Host "║  ✅ GIT: COMMIT Y TAG COMPLETADOS EXITOSAMENTE                ║" -ForegroundColor Green
+                Write-Host "╚════════════════════════════════════════════════════════════════╝" -ForegroundColor Green
+                Write-Host "   Versión: v$NewVersion" -ForegroundColor White
+                Write-Host "   Commit: $(git rev-parse --short HEAD)" -ForegroundColor White
             }
-
-            Write-Host "✅ Tag v$NewVersion pusheado a origin" -ForegroundColor Green
-
-            Write-Host "`n╔════════════════════════════════════════════════════════════════╗" -ForegroundColor Green
-            Write-Host "║  ✅ GIT: COMMIT Y TAG COMPLETADOS EXITOSAMENTE                ║" -ForegroundColor Green
-            Write-Host "╚════════════════════════════════════════════════════════════════╝" -ForegroundColor Green
-            Write-Host "   Versión: v$NewVersion" -ForegroundColor White
-            Write-Host "   Commit: $(git rev-parse --short HEAD)" -ForegroundColor White
 
             $LastVersion = $NewVersion
         } catch {
