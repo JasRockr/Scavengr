@@ -1,11 +1,13 @@
 # 🗃️ Scavengr
 
 ![CI/CD](https://github.com/JasRockr/Scavengr/actions/workflows/ci.yml/badge.svg)
-![Tests](https://img.shields.io/badge/tests-51%2F51-brightgreen.svg)
-![Coverage](https://img.shields.io/badge/coverage-44%25-orange.svg)
-![Version](https://img.shields.io/badge/version-0.0.3-blue.svg)
+![Tests](https://img.shields.io/badge/tests-282%2F282-brightgreen.svg)
+![Coverage](https://img.shields.io/badge/coverage-74%25-brightgreen.svg)
+![Version](https://img.shields.io/badge/version-0.0.4-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.8%2B-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
+![Status](https://img.shields.io/badge/status-beta-yellow.svg)
+[![PyPI version](https://badge.fury.io/py/scavengr.svg)](https://pypi.org/project/scavengr/)
 
 > _"Descubre lo que tus bases esconden."_
 
@@ -60,6 +62,39 @@ scavengr validate -i schema.dbml
 scavengr dictionary -i schema.dbml -o dict.xlsx
 scavengr report -i schema.dbml -o report.xlsx
 ```
+
+---
+
+## ✨ Novedades en v0.0.4
+
+### 🚀 Sistema de Caché de Metadatos
+
+Extracción hasta **90% más rápida** con caché automático:
+
+```bash
+# Primera extracción (crea caché)
+scavengr extract --cache -o schema.dbml
+
+# Subsecuentes (usa caché, ~90% más rápido)
+scavengr extract --cache -o schema.dbml
+
+# Forzar actualización (si BD cambió)
+scavengr extract --cache --force-refresh -o schema.dbml
+```
+
+### ✅ Suite de Tests Completa
+
+- **282 tests** (100% passing)
+- **74% coverage** global
+- **100% coverage** en módulos críticos
+- **0 errores mypy** (type hints completos)
+
+### 🔍 Validaciones de Calidad Mejoradas
+
+- Detección de índices BTREE/PRIMARY sin columnas (MySQL)
+- Identificadores CamelCase escapados (PostgreSQL)
+- Tipos con espacios normalizados
+- Autoreferences filtradas (SQL Server)
 
 ---
 

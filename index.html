@@ -393,6 +393,11 @@
                     <h3>Reportes Analíticos</h3>
                     <p>Score de calidad en 7 dimensiones. Análisis estadístico y recomendaciones priorizadas por impacto.</p>
                 </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Sistema de Caché Inteligente</h3>
+                    <p>Caché automático de metadatos con TTL de 24 horas. Reducción del 90% en tiempo de extracciones subsecuentes. Serialización Pickle o JSON.</p>
+                </div>
             </div>
         </div>
     </section>
@@ -474,7 +479,7 @@
                 <div class="feature-card">
                     <h3>Extraer y Validar</h3>
                     <div class="code-block">
-                        <code><span class="code-comment"># Extraer esquema completo</span><br>scavengr extract -o mi-esquema.dbml<br><br><span class="code-comment"># Validar estructura</span><br>scavengr validate -i mi-esquema.dbml</code>
+                        <code><span class="code-comment"># Extraer esquema completo</span><br>scavengr extract -o mi-esquema.dbml<br><br><span class="code-comment"># Con caché (90% más rápido)</span><br>scavengr extract --cache -o mi-esquema.dbml<br><br><span class="code-comment"># Validar estructura</span><br>scavengr validate -i mi-esquema.dbml</code>
                     </div>
                 </div>
                 <div class="feature-card">

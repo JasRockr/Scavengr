@@ -49,6 +49,8 @@ scavengr extract -o OUTPUT [OPTIONS]
 |-------------------|--------------------------------|-----------|
 | `-o, --output`    | Archivo DBML de salida         | ✅ Sí     |
 | `--env-file`      | Archivo de configuración       | ❌ No     |
+| `--cache`         | Habilitar caché de metadatos   | ❌ No     |
+| `--force-refresh` | Invalidar caché y reextraer    | ❌ No     |
 | `--help`          | Mostrar ayuda                  | -         |
 
 ### Ejemplos
@@ -60,8 +62,40 @@ scavengr extract -o schema.dbml
 # Con configuración específica
 scavengr extract -o schema.dbml --env-file prod.env
 
+# Con caché habilitado (primera vez: crea caché)
+scavengr extract --cache -o schema.dbml
+
+# Usando caché (subsecuentes: ~90% más rápido)
+scavengr extract --cache -o schema.dbml
+
+# Forzar actualización de caché (si BD cambió)
+scavengr extract --cache --force-refresh -o schema.dbml
+
 # Ruta completa
 scavengr extract -o /ruta/completa/mi-esquema.dbml
+```
+
+### Sistema de Caché
+
+**Características:**
+- **Serialización**: Pickle (rápido) o JSON (portable)
+- **TTL**: 24 horas por defecto (configurable)
+- **Ubicación**: `.scavengr_cache/` (auto-creado, ignorado por git)
+- **Rendimiento**: ~90% reducción en tiempo de extracciones subsecuentes
+- **Gestión**: Expiración automática basada en TTL
+
+**Uso:**
+```bash
+# Primera extracción (crea caché)
+scavengr extract --cache -o schema.dbml
+# Tiempo: ~30 segundos
+
+# Subsecuentes (usa caché)
+scavengr extract --cache -o schema.dbml
+# Tiempo: ~3 segundos (90% más rápido)
+
+# Si la BD cambió, forzar actualización
+scavengr extract --cache --force-refresh -o schema.dbml
 ```
 
 ### Salida

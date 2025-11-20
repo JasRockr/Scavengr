@@ -461,7 +461,7 @@ class ValidateDBML:
         # Verificar índices sin columnas
         if hasattr(table, "indexes"):
             for index in table.indexes:
-                index_type = getattr(index, "index_type", "").upper()
+                index_type = (getattr(index, "index_type", None) or "").upper()
                 columns = getattr(index, "columns", [])
 
                 # BTREE sin columnas
@@ -606,7 +606,7 @@ class ValidateDBML:
         # Por defecto, si tiene índices BTREE o PRIMARY, probablemente es MySQL
         if hasattr(table, "indexes"):
             for index in table.indexes:
-                index_type = getattr(index, "index_type", "").upper()
+                index_type = (getattr(index, "index_type", None) or "").upper()
                 if index_type in ["BTREE", "HASH", "FULLTEXT", "SPATIAL", "PRIMARY"]:
                     return True
 

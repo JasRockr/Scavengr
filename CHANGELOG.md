@@ -79,6 +79,16 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - **Mensajes de Usuario**: Compatibilidad Windows/PowerShell
   - Eliminados acentos en todos los mensajes
   - Encoding limpio en terminales Windows
+
+### Fixed [0.0.4]
+
+- **BUG CRÍTICO: Validación con índices None**: Corregido error `'NoneType' object has no attribute 'upper'`
+  - **Problema**: `scavengr validate` fallaba cuando un índice tenía `index_type=None` explícitamente
+  - **Causa**: `getattr(index, "index_type", "")` devolvía `None` si el atributo existía con valor `None`
+  - **Solución**: Usar operador `or` para garantizar string vacío: `(getattr(index, "index_type", None) or "").upper()`
+  - **Ubicación**: `scavengr/application/validate.py` líneas 464 y 609
+  - **Test de regresión**: `tests/integration/test_validate_usecase.py::test_validate_dbml_with_none_index_type`
+  - **Reportado en**: Testing E2E con archivos DBML reales (struct-dwh_test_mysql.dbml)
 - **Estructura de Proyecto**:
   - `.gitignore`: Configuración corregida (docs/, tests/ NO ignorados)
   - `.gitignore`: Solo workflows y `*_GUIDE.md` en `.github/`
