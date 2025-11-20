@@ -19,7 +19,6 @@ Comandos disponibles (orden lógico de uso):
 
 Author: Jason Rivera
 Date: 2025-10-09
-Version: 0.0.3
 """
 
 import argparse
@@ -28,6 +27,12 @@ import os
 import sys
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional
+
+# Importar versión dinámica de setuptools-scm
+try:
+    from scavengr._version import __version__
+except ImportError:
+    __version__ = "unknown"
 
 # Importar utilidades centralizadas
 from scavengr.utils import (
@@ -76,7 +81,7 @@ class ScavengrCLI:
     """Clase principal del CLI de Scavengr"""
 
     def __init__(self) -> None:
-        self.version: str = "0.0.3"
+        self.version: str = __version__
 
     def extract_command(self, args: argparse.Namespace) -> bool:
         """Comando para extraer metadatos y generar DBML usando caso de uso."""
