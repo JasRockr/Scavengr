@@ -210,7 +210,7 @@ function Get-MultiLineInput {
 
 # -----------------------------------------------------------
 # MODO BUILD ONLY: Solo construir paquetes sin Git
-# -----------------------------------------------------------
+# Modo BuildOnly: Solo build, sin Git operations
 if ($BuildOnly) {
     Write-Host "`n╔════════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
     Write-Host "║  🔨 MODO BUILD ONLY: Solo construcción de paquetes           ║" -ForegroundColor Cyan
@@ -218,15 +218,13 @@ if ($BuildOnly) {
 
     Write-Host "`n📦 Este modo solo construirá los paquetes sin modificar Git" -ForegroundColor Yellow
     Write-Host "   (No se creará commit, tag, ni se pusheará nada)" -ForegroundColor Gray
+    Write-Host ""
 
-    # Saltar directamente al paso 3 (Build)
-    $Step = 3
-    $Choice = "c"
-    goto BuildStep
-}
+    # Ir directamente a la sección de build (después del bloque else)
+} else {
 
 # -----------------------------------------------------------
-# PASO 1: Verificación de Entorno y Versión de Twine
+# PASO 1: Verificación de Entorno y Versión de Twine (Solo si NO es BuildOnly)
 # -----------------------------------------------------------
 $Step = 1
 $Choice = Get-UserChoice -Prompt "$Step. [VERIFICACIÓN DE ENTORNO] Presiona [c] para verificar la versión de Twine y dependencias."
@@ -595,12 +593,18 @@ if ($Choice -eq "c") {
 
 } elseif ($Choice -eq "q") { exit }
 
+}  # Fin del bloque else (NO BuildOnly)
+
 # -----------------------------------------------------------
 # PASO 3: Construcción de Distribución (Build)
 # -----------------------------------------------------------
-:BuildStep  # Label para saltar aquí en modo -BuildOnly
 $Step = 3
-$Choice = Get-UserChoice -Prompt "$Step. [BUILD] Presiona [c] para limpiar 'dist/', metadatos y construir los nuevos paquetes."
+if ($BuildOnly) {
+    # En modo BuildOnly, ejecutar directamente sin preguntar
+    $Choice = "c"
+} else {
+    $Choice = Get-UserChoice -Prompt "$Step. [BUILD] Presiona [c] para limpiar 'dist/', metadatos y construir los nuevos paquetes."
+}
 
 if ($Choice -eq "c") {
     Write-Host "-> Limpiando dist/, egg-info y _version.py para asegurar la version correcta..." -ForegroundColor Yellow
@@ -625,6 +629,19 @@ if ($Choice -eq "c") {
         Write-Host "-> Verificando paquetes con 'twine check dist/*'..." -ForegroundColor Yellow
         & twine check dist/*
         Write-Host "✅ Verificación de Twine completada (PASSED)." -ForegroundColor Green
+
+        # Si es modo BuildOnly, terminar aquí
+        if ($BuildOnly) {
+            Write-Host "`n╔════════════════════════════════════════════════════════════════╗" -ForegroundColor Green
+            Write-Host "║  ✅ BUILD COMPLETADO EXITOSAMENTE                             ║" -ForegroundColor Green
+            Write-Host "╚════════════════════════════════════════════════════════════════╝" -ForegroundColor Green
+            Write-Host "`n📦 Paquetes creados en dist/:" -ForegroundColor Cyan
+            Get-ChildItem -Path "dist" | ForEach-Object { Write-Host "   - $($_.Name)" -ForegroundColor White }
+            Write-Host "`n💡 Para publicar a PyPI, ejecuta:" -ForegroundColor Yellow
+            Write-Host "   twine upload dist/*" -ForegroundColor White
+            Write-Host ""
+            exit 0
+        }
 
     } catch {
         Write-Host "❌ ERROR durante el Build o Check de Twine. El proceso no continuará." -ForegroundColor Red
