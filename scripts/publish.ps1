@@ -1,30 +1,49 @@
 # -----------------------------------------------------------
 # SCRIPT: publish.ps1
-# DESCRIPCIÓN: Script interactivo para el flujo de publicación
-#              (Git Commit -> Build -> Twine Upload) con manejo
-#              de errores y entrada de versión/mensaje manual.
+# DESCRIPCIÓN: Script universal de publicación para proyectos Python
+#              Compatible con protecciones de rama y flujos CI/CD
 # AUTOR: Json Rivera
-# FECHA: 2025-10-09
-# ENTORNO: Windows 11 / PowerShell
+# FECHA: 2025-11-19
+# ENTORNO: Windows/Linux/Mac - PowerShell Core
 # REQUISITOS: Python, pip, twine, git en PATH
 # NOTA: Ejecutar en la raíz del proyecto (donde está pyproject.toml)
-# EJEMPLO DE USO:
-#   .\scripts\publish.ps1                          # Publicación normal
-#   .\scripts\publish.ps1 -Rollback                # Deshacer último release
-#   .\scripts\publish.ps1 -RollbackTag "v0.0.4"    # Deshacer release específico
+#
+# EJEMPLOS DE USO:
+#   .\scripts\publish.ps1                              # Publicación normal (detecta protecciones)
+#   .\scripts\publish.ps1 -SkipBranchProtection        # Forzar push directo (NO RECOMENDADO)
+#   .\scripts\publish.ps1 -BuildOnly                   # Solo build (sin commit/tag/push)
+#   .\scripts\publish.ps1 -Rollback                    # Deshacer último release
+#   .\scripts\publish.ps1 -RollbackTag "v0.0.4"        # Deshacer release específico
+#
+# CONFIGURACIÓN DEL PROYECTO:
+# ===========================
+# Editar estas variables para adaptar a tu proyecto:
+#   - $ProjectName: Nombre del paquete Python
+#   - $RepoOwner: Propietario del repositorio GitHub
+#   - $RepoName: Nombre del repositorio GitHub
+#
+# FLUJOS SOPORTADOS:
+# ==================
+# 1. CON PROTECCIÓN DE RAMA (Producción - RECOMENDADO):
+#    - Detecta protecciones automáticamente
+#    - Crea rama release/vX.Y.Z
+#    - Pushea rama y tag
+#    - Requiere PR manual y aprobación
+#    - Después del merge: volver a ejecutar para build/PyPI
+#
+# 2. SIN PROTECCIÓN DE RAMA (Desarrollo):
+#    - Push directo a main
+#    - Tag automático
+#    - Build y publicación inmediata
+#
+# 3. BUILD MANUAL (Testing):
+#    - Usar flag -BuildOnly
+#    - Solo construye paquetes sin modificar Git
 #
 # IMPORTANTE - VERSIONADO:
 # ========================
-# La versión del paquete se gestiona AUTOMÁTICAMENTE mediante setuptools-scm.
-# NO editar manualmente scavengr/_version.py (es auto-generado).
-#
-# FLUJO DE VERSIONADO:
-# 1. Crear tag en Git: git tag -a "vX.Y.Z" -m "Mensaje"
-# 2. Push del tag: git push origin vX.Y.Z
-# 3. Build: python -m build (setuptools-scm lee el tag automáticamente)
-# 4. Publicar: twine upload dist/*
-#
-# El tag de Git es la ÚNICA fuente de verdad para la versión.
+# La versión se gestiona mediante setuptools-scm (tags de Git)
+# NO editar manualmente _version.py (es auto-generado)
 # -----------------------------------------------------------
 
 # Parámetros del script
@@ -33,20 +52,33 @@ param(
     [switch]$Rollback,
 
     [Parameter(Mandatory=$false)]
-    [string]$RollbackTag
+    [string]$RollbackTag,
+
+    [Parameter(Mandatory=$false)]
+    [switch]$SkipBranchProtection,
+
+    [Parameter(Mandatory=$false)]
+    [switch]$BuildOnly
 )
 
-# Configuración inicial
-$RepoName = "scavengr"
-$TwineVersion = "6.0.1"
-$ErrorActionPreference = "Continue" # Permite continuar después de errores (ver bloque try/catch)
+# ═══════════════════════════════════════════════════════════
+# CONFIGURACIÓN DEL PROYECTO (EDITAR SEGÚN TU PROYECTO)
+# ═══════════════════════════════════════════════════════════
+$ProjectName = "scavengr"              # Nombre del paquete Python
+$RepoOwner = "JasRockr"                # Propietario del repo (GitHub)
+$RepoName = "Scavengr"                 # Nombre del repositorio
+$TwineVersion = "6.0.1"                # Versión de Twine (opcional)
+$RequiresPR = $true                    # ¿Requiere PR por defecto? (true/false)
+
+# Variables globales
+$ErrorActionPreference = "Continue"
 
 # -----------------------------------------------------------
 # MODO ROLLBACK: Deshacer último release
 # -----------------------------------------------------------
 if ($Rollback -or $RollbackTag) {
     Write-Host "`n╔════════════════════════════════════════════════════════════════╗" -ForegroundColor Red
-    Write-Host "║  🔄 MODO ROLLBACK: Deshacer Release                           ║" -ForegroundColor Red
+    Write-Host "║  🔄 MODO ROLLBACK: Deshacer Release                            ║" -ForegroundColor Red
     Write-Host "╚════════════════════════════════════════════════════════════════╝" -ForegroundColor Red
 
     # Si no se especificó tag, obtener el último
@@ -174,6 +206,23 @@ function Get-MultiLineInput {
         $InputLines += $Line
     }
     return $InputLines -join "`n"
+}
+
+# -----------------------------------------------------------
+# MODO BUILD ONLY: Solo construir paquetes sin Git
+# -----------------------------------------------------------
+if ($BuildOnly) {
+    Write-Host "`n╔════════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
+    Write-Host "║  🔨 MODO BUILD ONLY: Solo construcción de paquetes           ║" -ForegroundColor Cyan
+    Write-Host "╚════════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
+
+    Write-Host "`n📦 Este modo solo construirá los paquetes sin modificar Git" -ForegroundColor Yellow
+    Write-Host "   (No se creará commit, tag, ni se pusheará nada)" -ForegroundColor Gray
+
+    # Saltar directamente al paso 3 (Build)
+    $Step = 3
+    $Choice = "c"
+    goto BuildStep
 }
 
 # -----------------------------------------------------------
@@ -409,121 +458,128 @@ if ($Choice -eq "c") {
             $CurrentBranch = git rev-parse --abbrev-ref HEAD
             $NeedsPR = $false
 
-            # Intentar push para detectar protecciones
-            Write-Host "   Verificando si se requiere Pull Request..." -ForegroundColor Gray
-            $TestPush = git push origin $CurrentBranch --dry-run 2>&1
-
-            if ($TestPush -match "protected" -or $TestPush -match "rule violations" -or $TestPush -match "pull request") {
-                $NeedsPR = $true
-                Write-Host "   ⚠️  Rama 'main' protegida - se requiere Pull Request" -ForegroundColor Yellow
+            # Verificar si se debe omitir la detección de protecciones
+            if ($SkipBranchProtection) {
+                Write-Host "   ⚠️  FLAG -SkipBranchProtection activo" -ForegroundColor Yellow
+                Write-Host "   → Se intentará push directo ignorando protecciones" -ForegroundColor Gray
+                Write-Host "   ⚠️  ADVERTENCIA: Esto puede fallar si hay protecciones de rama" -ForegroundColor Red
+                $NeedsPR = $false
             } else {
-                Write-Host "   ✅ Push directo permitido" -ForegroundColor Green
+                # Intentar push para detectar protecciones
+                Write-Host "   Verificando si se requiere Pull Request..." -ForegroundColor Gray
+                $TestPush = git push origin $CurrentBranch --dry-run 2>&1
+
+                if ($TestPush -match "protected" -or $TestPush -match "rule violations" -or $TestPush -match "pull request") {
+                    $NeedsPR = $true
+                    Write-Host "   ⚠️  Rama '$CurrentBranch' protegida - se requiere Pull Request" -ForegroundColor Yellow
+                } else {
+                    Write-Host "   ✅ Push directo permitido" -ForegroundColor Green
+                }
             }
 
+            # Si se requiere PR, crear rama release
             if ($NeedsPR) {
-                # Crear rama de release y pushear
                 $ReleaseBranch = "release/v$NewVersion"
 
-                Write-Host "`n📋 ESTRATEGIA: Crear Pull Request (rama protegida detectada)" -ForegroundColor Cyan
-                Write-Host "`n5️⃣  Creando rama de release: $ReleaseBranch..." -ForegroundColor Cyan
+                Write-Host "`n╔════════════════════════════════════════════════════════════════╗" -ForegroundColor Yellow
+                Write-Host "║  ⚠️  FLUJO DE PULL REQUEST REQUERIDO                          ║" -ForegroundColor Yellow
+                Write-Host "╚════════════════════════════════════════════════════════════════╝" -ForegroundColor Yellow
+                Write-Host ""
+                Write-Host "📋 Se creará una rama '$ReleaseBranch' para el PR" -ForegroundColor Cyan
+                Write-Host ""
 
-                # Crear rama de release desde el commit actual
+                # Crear rama release
+                Write-Host "   Creando rama $ReleaseBranch..." -ForegroundColor Gray
                 & git checkout -b $ReleaseBranch
 
                 if ($LASTEXITCODE -ne 0) {
-                    Write-Host "`n❌ ERROR: No se pudo crear la rama $ReleaseBranch" -ForegroundColor Red
-                    throw "Error al crear rama de release"
+                    Write-Host "`n❌ ERROR: No se pudo crear la rama de release" -ForegroundColor Red
+                    throw "Error al crear rama $ReleaseBranch"
                 }
 
-                Write-Host "✅ Rama $ReleaseBranch creada" -ForegroundColor Green
-
-                # Pushear rama de release
-                Write-Host "`n6️⃣  Pusheando rama $ReleaseBranch a origin..." -ForegroundColor Cyan
-                & git push origin $ReleaseBranch
+                # Pushear rama release
+                Write-Host "   Pusheando $ReleaseBranch a origin..." -ForegroundColor Gray
+                & git push -u origin $ReleaseBranch
 
                 if ($LASTEXITCODE -ne 0) {
-                    Write-Host "`n❌ ERROR: No se pudo pushear la rama $ReleaseBranch" -ForegroundColor Red
-                    throw "Error al pushear rama de release"
+                    Write-Host "`n❌ ERROR: No se pudo pushear la rama de release" -ForegroundColor Red
+                    throw "Error al pushear $ReleaseBranch"
                 }
 
-                Write-Host "✅ Rama $ReleaseBranch pusheada a origin" -ForegroundColor Green
+                Write-Host "✅ Rama $ReleaseBranch creada y pusheada" -ForegroundColor Green
 
                 # Pushear tag
-                Write-Host "`n7️⃣  Pusheando tag v$NewVersion..." -ForegroundColor Cyan
-                & git push origin "v$NewVersion"
-
-                if ($LASTEXITCODE -ne 0) {
-                    Write-Host "`n⚠️  ADVERTENCIA: No se pudo pushear el tag" -ForegroundColor Yellow
-                    Write-Host "   Puedes pushearlo después del merge: git push origin v$NewVersion" -ForegroundColor Gray
-                } else {
-                    Write-Host "✅ Tag v$NewVersion pusheado" -ForegroundColor Green
-                }
-
-                # Volver a main
-                & git checkout main
-
-                # Información de Pull Request
-                Write-Host "`n╔════════════════════════════════════════════════════════════════╗" -ForegroundColor Green
-                Write-Host "║  ✅ RAMA DE RELEASE CREADA - REQUIERE PULL REQUEST            ║" -ForegroundColor Green
-                Write-Host "╚════════════════════════════════════════════════════════════════╝" -ForegroundColor Green
-
-                Write-Host "`n📋 Próximos pasos:" -ForegroundColor Cyan
-                Write-Host "   1. Crear Pull Request en GitHub:" -ForegroundColor White
-                Write-Host "      Base: main ← Compare: $ReleaseBranch" -ForegroundColor Gray
-                Write-Host "      URL: https://github.com/JasRockr/Scavengr/compare/$ReleaseBranch" -ForegroundColor Gray
-
-                Write-Host "`n   2. Esperar a que pasen los checks de CI/CD:" -ForegroundColor White
-                Write-Host "      • Tests unitarios" -ForegroundColor Gray
-                Write-Host "      • Linting (flake8)" -ForegroundColor Gray
-                Write-Host "      • Pre-commit hooks" -ForegroundColor Gray
-                Write-Host "      • Verificación de cobertura" -ForegroundColor Gray
-
-                Write-Host "`n   3. Mergear el PR cuando los checks pasen" -ForegroundColor White
-
-                Write-Host "`n   4. Después del merge, continuar con build y publicación:" -ForegroundColor White
-                Write-Host "      git checkout main" -ForegroundColor Gray
-                Write-Host "      git pull origin main" -ForegroundColor Gray
-                Write-Host "      .\scripts\publish.ps1  (continuar desde paso 3)" -ForegroundColor Gray
-
-                Write-Host "`n💡 Por ahora, el script se detendrá aquí." -ForegroundColor Cyan
-                Write-Host "   Después del merge del PR, vuelve a ejecutarlo para build y PyPI." -ForegroundColor Gray
-
-                Write-Host "`n⏸️  Script pausado - Esperando merge del PR..." -ForegroundColor Yellow
-                exit 0
-
-            } else {
-                # Push directo (sin protecciones)
-                Write-Host "`n5️⃣  Pusheando commits a origin/main..." -ForegroundColor Cyan
-                & git push origin main
-
-                if ($LASTEXITCODE -ne 0) {
-                    Write-Host "`n❌ ERROR: No se pudo pushear a origin/main" -ForegroundColor Red
-                    Write-Host "   El commit y tag existen localmente pero no se pushearon." -ForegroundColor Yellow
-                    Write-Host "   Puedes pushear manualmente: git push origin main" -ForegroundColor Gray
-                    throw "Error al pushear commits a origin/main"
-                }
-
-                Write-Host "✅ Commits pusheados a origin/main" -ForegroundColor Green
-
-                # Git Push (tags)
-                Write-Host "`n6️⃣  Pusheando tag v$NewVersion a origin..." -ForegroundColor Cyan
+                Write-Host "`n   Pusheando tag v$NewVersion a origin..." -ForegroundColor Gray
                 & git push origin "v$NewVersion"
 
                 if ($LASTEXITCODE -ne 0) {
                     Write-Host "`n❌ ERROR: No se pudo pushear el tag" -ForegroundColor Red
-                    Write-Host "   El tag existe localmente pero no se pusheó al remoto." -ForegroundColor Yellow
-                    Write-Host "   Puedes pushear manualmente: git push origin v$NewVersion" -ForegroundColor Gray
                     throw "Error al pushear tag v$NewVersion"
                 }
 
-                Write-Host "✅ Tag v$NewVersion pusheado a origin" -ForegroundColor Green
-
-                Write-Host "`n╔════════════════════════════════════════════════════════════════╗" -ForegroundColor Green
-                Write-Host "║  ✅ GIT: COMMIT Y TAG COMPLETADOS EXITOSAMENTE                ║" -ForegroundColor Green
+                Write-Host "✅ Tag v$NewVersion pusheado" -ForegroundColor Green
+                Write-Host ""
+                Write-Host "╔════════════════════════════════════════════════════════════════╗" -ForegroundColor Green
+                Write-Host "║  📝 SIGUIENTE PASO: CREAR PULL REQUEST                        ║" -ForegroundColor Green
                 Write-Host "╚════════════════════════════════════════════════════════════════╝" -ForegroundColor Green
-                Write-Host "   Versión: v$NewVersion" -ForegroundColor White
-                Write-Host "   Commit: $(git rev-parse --short HEAD)" -ForegroundColor White
+                Write-Host ""
+                Write-Host "1️⃣  Ir a GitHub y crear un Pull Request:" -ForegroundColor Cyan
+                Write-Host "   URL: https://github.com/$RepoOwner/$RepoName/compare/$ReleaseBranch" -ForegroundColor White
+                Write-Host ""
+                Write-Host "2️⃣  Configurar el PR:" -ForegroundColor Cyan
+                Write-Host "   Base: main ← Compare: $ReleaseBranch" -ForegroundColor White
+                Write-Host "   Título: Release v$NewVersion" -ForegroundColor White
+                Write-Host ""
+                Write-Host "3️⃣  Esperar a que pasen los checks de CI/CD:" -ForegroundColor Cyan
+                Write-Host "   - Tests unitarios (pytest)" -ForegroundColor Gray
+                Write-Host "   - Linting (flake8)" -ForegroundColor Gray
+                Write-Host "   - Pre-commit hooks" -ForegroundColor Gray
+                Write-Host "   - Cobertura de código" -ForegroundColor Gray
+                Write-Host ""
+                Write-Host "4️⃣  Aprobar y mergear el Pull Request" -ForegroundColor Cyan
+                Write-Host ""
+                Write-Host "5️⃣  Después del merge, continuar con la publicación:" -ForegroundColor Cyan
+                Write-Host "   git checkout main" -ForegroundColor White
+                Write-Host "   git pull origin main" -ForegroundColor White
+                Write-Host "   .\scripts\publish.ps1" -ForegroundColor White
+                Write-Host ""
+                Write-Host "⚠️  El script se detendrá aquí hasta que se complete el PR" -ForegroundColor Yellow
+                Write-Host ""
+
+                exit 0
             }
+
+            # Si NO se requiere PR, push directo
+            Write-Host "`n4️⃣  Pusheando commits a origin/$CurrentBranch..." -ForegroundColor Cyan
+            & git push origin $CurrentBranch
+
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "`n❌ ERROR: No se pudo pushear commits" -ForegroundColor Red
+                Write-Host "   El commit y tag existen localmente pero no se pushearon." -ForegroundColor Yellow
+                Write-Host "   Puedes pushear manualmente: git push origin $CurrentBranch" -ForegroundColor Gray
+                throw "Error al pushear commits a origin/$CurrentBranch"
+            }
+
+            Write-Host "✅ Commits pusheados a origin/$CurrentBranch" -ForegroundColor Green
+
+            # Git Push (tags)
+            Write-Host "`n5️⃣  Pusheando tag v$NewVersion a origin..." -ForegroundColor Cyan
+            & git push origin "v$NewVersion"
+
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "`n❌ ERROR: No se pudo pushear el tag" -ForegroundColor Red
+                Write-Host "   El tag existe localmente pero no se pusheó al remoto." -ForegroundColor Yellow
+                Write-Host "   Puedes pushear manualmente: git push origin v$NewVersion" -ForegroundColor Gray
+                throw "Error al pushear tag v$NewVersion"
+            }
+
+            Write-Host "✅ Tag v$NewVersion pusheado a origin" -ForegroundColor Green
+
+            Write-Host "`n╔════════════════════════════════════════════════════════════════╗" -ForegroundColor Green
+            Write-Host "║  ✅ GIT: COMMIT Y TAG COMPLETADOS EXITOSAMENTE                ║" -ForegroundColor Green
+            Write-Host "╚════════════════════════════════════════════════════════════════╝" -ForegroundColor Green
+            Write-Host "   Versión: v$NewVersion" -ForegroundColor White
+            Write-Host "   Commit: $(git rev-parse --short HEAD)" -ForegroundColor White
 
             $LastVersion = $NewVersion
         } catch {
@@ -542,6 +598,7 @@ if ($Choice -eq "c") {
 # -----------------------------------------------------------
 # PASO 3: Construcción de Distribución (Build)
 # -----------------------------------------------------------
+:BuildStep  # Label para saltar aquí en modo -BuildOnly
 $Step = 3
 $Choice = Get-UserChoice -Prompt "$Step. [BUILD] Presiona [c] para limpiar 'dist/', metadatos y construir los nuevos paquetes."
 
@@ -550,12 +607,12 @@ if ($Choice -eq "c") {
     try {
         # 3.1 Limpiar directorios de metadatos (CLAVE)
         Remove-Item -Path "dist" -Force -Recurse -ErrorAction SilentlyContinue
-        Remove-Item -Path "scavengr.egg-info" -Force -Recurse -ErrorAction SilentlyContinue
+        Remove-Item -Path "$ProjectName.egg-info" -Force -Recurse -ErrorAction SilentlyContinue
 
         # Opcional: Si el archivo _version.py es generado por setuptools_scm, también debe eliminarse.
         # Usando setuptools_scm, normalmente no se maneja _version.py manualmente.
         # Si existe, la siguiente línea lo limpiará.
-        Remove-Item -Path "scavengr\_version.py" -Force -ErrorAction SilentlyContinue
+        Remove-Item -Path "$ProjectName\_version.py" -Force -ErrorAction SilentlyContinue
 
         Write-Host "-> Ejecutando 'python -m build'..." -ForegroundColor Yellow
 

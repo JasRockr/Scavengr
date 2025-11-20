@@ -115,3 +115,39 @@ Ref: posts.user_id > users.id  // Referencia a tabla inexistente
                 os.unlink(tmp_path)
             except PermissionError:
                 pass
+
+    def test_validate_dbml_with_none_index_type(self):
+        """Test: Valida DBML con índices que tienen index_type=None (bug fix).
+
+        Regresión: Antes fallaba con "'NoneType' object has no attribute 'upper'"
+        cuando un índice tenía index_type explícitamente None.
+        """
+        dbml_content = """
+Table test_table {
+  id integer [primary key]
+  name varchar(100)
+
+  indexes {
+    id [type: btree]
+    name [unique]
+  }
+}
+"""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".dbml", delete=False) as f:
+            f.write(dbml_content)
+            tmp_path = f.name
+
+        try:
+            validator = ValidateDBML()
+            result = validator.execute(tmp_path)
+
+            # No debe lanzar excepción
+            assert result is not None
+            assert hasattr(result, "is_valid")
+            # Puede o no ser válido, pero no debe crashear
+
+        finally:
+            try:
+                os.unlink(tmp_path)
+            except PermissionError:
+                pass
