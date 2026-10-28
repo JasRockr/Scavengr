@@ -30,6 +30,10 @@ from scavengr.infrastructure.database.connector import (
 )
 
 
+class DriverError(Exception):
+    """Error de driver simulado; evita depender de que el driver esté instalado."""
+
+
 @pytest.fixture
 def postgresql_config():
     """Configuración de prueba para PostgreSQL."""
@@ -250,13 +254,11 @@ class TestPostgreSQLConnector:
         assert "pip install" in str(exc_info.value).lower()
 
     @mock.patch("scavengr.infrastructure.database.connector.PGSQL_AVAILABLE", True)
+    @mock.patch("scavengr.infrastructure.database.connector.pgsql_errors", DriverError)
     @mock.patch("scavengr.infrastructure.database.connector.pgsql")
     def test_connect_raises_on_connection_error(self, mock_pgsql, postgresql_config):
         """Debe manejar errores de conexión."""
-        from psycopg2 import OperationalError
-
-        mock_pgsql.connect.side_effect = OperationalError("Connection refused")
-        mock_pgsql.Error = OperationalError
+        mock_pgsql.connect.side_effect = DriverError("Connection refused")
 
         connector = PostgreSQLConnector(postgresql_config)
 
@@ -316,13 +318,11 @@ class TestMySQLConnector:
         assert "pip install" in str(exc_info.value).lower()
 
     @mock.patch("scavengr.infrastructure.database.connector.MYSQL_AVAILABLE", True)
+    @mock.patch("scavengr.infrastructure.database.connector.mysql_errors", DriverError)
     @mock.patch("scavengr.infrastructure.database.connector.mysql")
     def test_connect_raises_on_connection_error(self, mock_mysql, mysql_config):
         """Debe manejar errores de conexión."""
-        from mysql.connector import Error as MySQLError
-
-        mock_mysql.connect.side_effect = MySQLError("Access denied")
-        mock_mysql.Error = MySQLError
+        mock_mysql.connect.side_effect = DriverError("Access denied")
 
         connector = MySQLConnector(mysql_config)
 
@@ -383,13 +383,11 @@ class TestMSSQLConnector:
         assert "pip install" in str(exc_info.value).lower()
 
     @mock.patch("scavengr.infrastructure.database.connector.MSSQL_AVAILABLE", True)
+    @mock.patch("scavengr.infrastructure.database.connector.mssql_errors", DriverError)
     @mock.patch("scavengr.infrastructure.database.connector.mssql")
     def test_connect_raises_on_connection_error(self, mock_mssql, mssql_config):
         """Debe manejar errores de conexión."""
-        from pyodbc import Error as PyODBCError
-
-        mock_mssql.connect.side_effect = PyODBCError("Login failed")
-        mock_mssql.Error = PyODBCError
+        mock_mssql.connect.side_effect = DriverError("Login failed")
 
         connector = MSSQLConnector(mssql_config)
 
