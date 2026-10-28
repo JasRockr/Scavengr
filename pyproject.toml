@@ -10,7 +10,7 @@ name = "scavengr"
 dynamic = ["version"]
 description = "Scavengr — Recolector y documentador de metadatos en bases de datos"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = "MIT"
 authors = [
   { name = "Json Rivera", email = "jsonrivera@proton.me" }
@@ -27,10 +27,10 @@ classifiers = [
   "Topic :: Software Development :: Documentation",
   "Topic :: System :: Systems Administration",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Operating System :: OS Independent"
 ]
 
@@ -83,7 +83,7 @@ markers = [
 ]
 
 [tool.ruff]
-target-version = "py310"
+target-version = "py311"
 line-length = 88
 extend-exclude = ["tests/lab/node_modules"]
 
@@ -121,7 +121,7 @@ output = "coverage.xml"
 
 [tool.black]
 line-length = 88
-target-version = ["py310", "py311", "py312", "py313"]
+target-version = ["py311", "py312", "py313", "py314"]
 include = '\.pyi?$'
 extend-exclude = '''
 /(
@@ -150,7 +150,7 @@ ensure_newline_before_comments = true
 skip_gitignore = true
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.11"
 strict = true
 warn_return_any = true
 warn_unused_configs = true
