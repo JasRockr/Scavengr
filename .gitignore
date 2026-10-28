@@ -1,162 +1,41 @@
-# 🗃️ Scavengr - Git Ignore Configuration
-
-# === DOCUMENTACIÓN Y TESTS ===
-# Documentación extensa sin estructura (obsoleto)
-doc/
-documentation/
-
-# NOTA IMPORTANTE: docs/ NO se ignora (documentación MkDocs del proyecto)
-# NOTA IMPORTANTE: tests/ NO se ignora (suite de tests del proyecto)
-# NOTA IMPORTANTE: .github/ NO se ignora (workflows y configuración CI/CD)
-
-# GitHub Actions - Incluir solo workflows y configuraciones
-.github/*
-!.github/workflows/*
-!.github/*_GUIDE.md
-
-# Archivos generados automáticamente
+# Python
+__pycache__/
+*.py[cod]
+build/
+dist/
+*.egg-info/
+.venv/
+venv/
 scavengr/_version.py
 
-# Scripts temporales de desarrollo (mantener publish.ps1)
-scripts/temp_*
-scripts/*.tmp
+# Herramientas
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+site/
+node_modules/
+.claude/settings.local.json
+.vscode/
+.idea/
 
-# === ARCHIVOS GENERADOS AUTOMÁTICAMENTE ===
-# Archivos de salida de Scavengr
-temp/
-output_files/
-*/output_files/
-*/output/
-output/
-
-# Archivos DBML (excepto fixtures de tests)
-*.dbml
-!/tests/fixtures/*.dbml
-
-# Archivos Excel/CSV de salida (excepto fixtures de tests)
-*.xlsx
-*.csv
-!/tests/fixtures/*.csv
-!/tests/fixtures/*.xlsx
-
-# Archivos de logging
-*.log
-logs/
-
-# Cache de Scavengr
-.scavengr_cache/
-
-# === ARCHIVOS DE CONFIGURACIÓN SENSIBLES ===
-# Configuraciones de BD con credenciales
-config/db_config.json
-config/db_config_*.json
-!config/db_config.example.json
-
-# Credenciales y claves
-*.key
-*.pem
+# Credenciales
 .env
 .env.*
 !.env.example
 
-# === ARCHIVOS DE PYTHON ===
-# Bytecode
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
+# Salidas de Scavengr: pueden contener metadatos de bases reales
+*.dbml
+*.xlsx
+*.csv
+*.log
+.scavengr_cache/
+!/tests/fixtures/*.dbml
+!/tests/fixtures/*.csv
+!/tests/fixtures/*.xlsx
+!/tests/lab/*.csv
 
-# Distribución / packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# PyInstaller
-*.manifest
-*.spec
-
-# === TESTING Y COBERTURA ===
-htmlcov/
-.tox/
-.coverage
-.coverage.*
-coverage.xml
-*.cover
-.hypothesis/
-.pytest_cache/
-nosetests.xml
-
-# === HERRAMIENTAS DE DESARROLLO ===
-# IDEs
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# Entornos virtuales
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
-.python-version
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# MkDocs build artifacts
-site/
-
-# Security reports
-bandit-report*.json
-
-# === ARCHIVOS DEL SISTEMA OPERATIVO ===
-# macOS
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-
-# Windows
-ehthumbs.db
-Thumbs.db
-desktop.ini
-
-# Linux
-*~
-
-# === ARCHIVOS TEMPORALES ===
-*.tmp
-*.temp
-*.bak
-*.swp
-temp_*
-*_temp.*
-
-# === ARCHIVOS DE BASE DE DATOS LOCALES ===
-*.db
-*.sqlite
-*.sqlite3
+# Local
+temp/
+docs/_privado/
