@@ -236,8 +236,7 @@ class TestDictionaryCommand:
         """Test que dictionary valida permisos de escritura."""
         with tempfile.TemporaryDirectory() as tmpdir:
             input_file = Path(tmpdir) / "test_schema.dbml"
-            # Ruta inválida para escritura (en Windows, ruta de sistema)
-            output_file = Path("C:\\Windows\\System32\\test_dictionary.xlsx")
+            output_file = Path(tmpdir) / "test_dictionary.xlsx"
 
             # Crear archivo de entrada mock
             input_file.write_text("Table users { id int [pk] }")
@@ -249,8 +248,11 @@ class TestDictionaryCommand:
             args.format = None
             args.env_file = None
 
-            # Ejecutar comando - debe fallar en validación de permisos
-            result = cli.dictionary_command(args)
+            # Simular directorio sin permisos de escritura, sin depender del SO ni del usuario
+            with mock.patch(
+                "scavengr.utils.validators.os.access", return_value=False
+            ):
+                result = cli.dictionary_command(args)
 
             # Verificar que retorna False
             assert result is False
