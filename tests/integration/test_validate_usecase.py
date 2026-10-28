@@ -2,12 +2,10 @@
 
 import os
 import tempfile
-from pathlib import Path
 
 import pytest
 
 from scavengr.application.validate import ValidateDBML
-from scavengr.infrastructure.parsers.dbml_parser import DBMLParser
 
 
 class TestValidateDBMLIntegration:

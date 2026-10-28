@@ -1,6 +1,5 @@
 """Tests unitarios para core.entities."""
 
-import pytest
 
 from scavengr.core.entities import Column, DatabaseSchema, Relationship, Table
 

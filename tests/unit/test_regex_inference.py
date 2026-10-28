@@ -1,6 +1,5 @@
 """Tests unitarios para core.services - RegexInferenceService."""
 
-import pytest
 
 from scavengr.core.services import RegexInferenceService
 

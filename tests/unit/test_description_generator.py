@@ -1,6 +1,5 @@
 """Tests unitarios para core.services - DescriptionGeneratorService."""
 
-import pytest
 
 from scavengr.core.entities import Column
 from scavengr.core.services import DescriptionGeneratorService

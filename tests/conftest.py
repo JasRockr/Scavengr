@@ -1,6 +1,6 @@
 """Configuración global y fixtures para tests."""
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 from unittest import mock
 
 import pytest

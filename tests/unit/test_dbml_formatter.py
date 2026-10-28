@@ -9,7 +9,6 @@ Date: 2025-11-18
 """
 
 import tempfile
-from datetime import datetime
 from pathlib import Path
 
 import pytest
