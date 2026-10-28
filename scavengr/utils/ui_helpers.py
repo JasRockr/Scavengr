@@ -9,6 +9,8 @@ Date: 2025-09-26
 Version: 0.0.1
 """
 
+import sys
+
 __all__ = ["provide_user_feedback"]
 
 
@@ -29,22 +31,32 @@ def provide_user_feedback(message: str, level: str = "info") -> None:
         En Windows cmd/PowerShell antiguo puede verse sin colores.
     """
     colors = {
-        'info': '\033[94m',      # Azul
-        'warning': '\033[93m',   # Amarillo
-        'error': '\033[91m',     # Rojo
-        'success': '\033[92m',   # Verde
-        'reset': '\033[0m'       # Reset
+        "info": "\033[94m",  # Azul
+        "warning": "\033[93m",  # Amarillo
+        "error": "\033[91m",  # Rojo
+        "success": "\033[92m",  # Verde
+        "reset": "\033[0m",  # Reset
     }
 
     # Prefijos sin emojis para compatibilidad multiplataforma
     prefixes = {
-        'info': '[INFO]',
-        'warning': '[WARNING]',
-        'error': '[ERROR]',
-        'success': '[SUCCESS]'
+        "info": "[INFO]",
+        "warning": "[WARNING]",
+        "error": "[ERROR]",
+        "success": "[SUCCESS]",
     }
 
-    color = colors.get(level, colors['info'])
-    prefix = prefixes.get(level, '[INFO]')
+    color = colors.get(level, colors["info"])
+    prefix = prefixes.get(level, "[INFO]")
 
-    print(f"{color}{prefix} {message}{colors['reset']}")
+    message_formatted = f"{color}{prefix} {message}{colors['reset']}"
+
+    # Usar sys.stdout con manejo explícito de encoding para Windows
+    try:
+        print(message_formatted, flush=True)
+    except UnicodeEncodeError:
+        # Fallback: reemplazar caracteres problemáticos
+        safe_message = message_formatted.encode(
+            sys.stdout.encoding or "utf-8", errors="replace"
+        ).decode(sys.stdout.encoding or "utf-8")
+        print(safe_message, flush=True)

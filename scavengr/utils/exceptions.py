@@ -23,6 +23,7 @@ class ScavengrError(Exception):
 
     Todas las excepciones personalizadas de Scavengr deben heredar de esta clase.
     """
+
     pass
 
 
@@ -36,6 +37,7 @@ class FileNotFoundError(ScavengrError):
     Examples:
         >>> raise FileNotFoundError("/path/to/file.dbml", "DBML")
     """
+
     def __init__(self, filepath: str, file_type: str = "archivo"):
         self.filepath = filepath
         self.file_type = file_type
@@ -52,7 +54,8 @@ class InvalidFormatError(ScavengrError):
     Examples:
         >>> raise InvalidFormatError(".txt", ["csv", "xlsx", "json"])
     """
-    def __init__(self, format_provided: str, valid_formats: list):
+
+    def __init__(self, format_provided: str, valid_formats: list[str]) -> None:
         self.format_provided = format_provided
         self.valid_formats = valid_formats
         super().__init__(
@@ -71,6 +74,7 @@ class ProcessingError(ScavengrError):
     Examples:
         >>> raise ProcessingError("parseo DBML", "sintaxis invalida en linea 42")
     """
+
     def __init__(self, operation: str, details: str):
         self.operation = operation
         self.details = details
@@ -86,4 +90,5 @@ class ValidationError(ScavengrError):
     Examples:
         >>> raise ValidationError("Sin permisos de escritura en /path/to/dir")
     """
+
     pass

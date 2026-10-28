@@ -1,23 +1,25 @@
 # 🗃️ Scavengr - Git Ignore Configuration
 
-# === DOCUMENTACIÓN Y TESTS (NO INCLUIR EN v0.0.1) ===
-# Documentación extensa - Solo README.md en raíz
+# === DOCUMENTACIÓN Y TESTS ===
+# Documentación extensa sin estructura (obsoleto)
 doc/
-docs/
 documentation/
 
-# Archivos adicionales
-scavengr/_version.py
-scripts/*
+# NOTA IMPORTANTE: docs/ NO se ignora (documentación MkDocs del proyecto)
+# NOTA IMPORTANTE: tests/ NO se ignora (suite de tests del proyecto)
+# NOTA IMPORTANTE: .github/ NO se ignora (workflows y configuración CI/CD)
 
-
-# Tests - No incluir en primera versión
-tests/
-test/
-
-# GitHub Actions - Incluir solo workflows
+# GitHub Actions - Incluir solo workflows y configuraciones
 .github/*
 !.github/workflows/*
+!.github/*_GUIDE.md
+
+# Archivos generados automáticamente
+scavengr/_version.py
+
+# Scripts temporales de desarrollo (mantener publish.ps1)
+scripts/temp_*
+scripts/*.tmp
 
 # === ARCHIVOS GENERADOS AUTOMÁTICAMENTE ===
 # Archivos de salida de Scavengr
@@ -26,15 +28,23 @@ output_files/
 */output_files/
 */output/
 output/
+
+# Archivos DBML (excepto fixtures de tests)
 *.dbml
+!/tests/fixtures/*.dbml
+
+# Archivos Excel/CSV de salida (excepto fixtures de tests)
 *.xlsx
 *.csv
-!/tests/fixtures/*.dbml
 !/tests/fixtures/*.csv
+!/tests/fixtures/*.xlsx
 
 # Archivos de logging
 *.log
 logs/
+
+# Cache de Scavengr
+.scavengr_cache/
 
 # === ARCHIVOS DE CONFIGURACIÓN SENSIBLES ===
 # Configuraciones de BD con credenciales
@@ -115,6 +125,12 @@ venv.bak/
 .mypy_cache/
 .dmypy.json
 dmypy.json
+
+# MkDocs build artifacts
+site/
+
+# Security reports
+bandit-report*.json
 
 # === ARCHIVOS DEL SISTEMA OPERATIVO ===
 # macOS

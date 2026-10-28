@@ -1,0 +1,114 @@
+// DBML de prueba para validar warnings
+// Contiene diferentes tipos de advertencias para testing
+
+Project "Test Warnings" {
+  database_type: "mixed"
+  note: 'Archivo de prueba con múltiples warnings'
+}
+
+// ==========================================
+// WARNINGS: Tablas sin Primary Key
+// ==========================================
+
+Table test.tabla_sin_pk {
+  id int [not null]
+  nombre varchar(100)
+  descripcion text
+}
+
+Table test.otra_tabla_sin_pk {
+  codigo varchar(50) [not null]
+  fecha timestamp
+}
+
+// ==========================================
+// WARNINGS: Tablas sin columnas
+// ==========================================
+
+Table test.tabla_vacia_1 {
+}
+
+Table test.tabla_vacia_2 {
+}
+
+// ==========================================
+// WARNINGS: PostgreSQL - CamelCase
+// ==========================================
+
+Table public.usuarios_postgres {
+  id serial [pk, not null]                    // serial = tipo PostgreSQL
+  NombreCompleto varchar(200) [not null]      // CamelCase sin escapar
+  "FechaCreacion" timestamp                   // CamelCase escapado (no genera warning)
+  EmailAddress varchar(100)                   // CamelCase
+  UpdatedAt timestamp without time zone       // Tipo PostgreSQL con espacios
+}
+
+// ==========================================
+// WARNINGS: PostgreSQL - Tipos con espacios
+// ==========================================
+
+Table public.documentos {
+  id bigserial [pk, not null]                 // bigserial = tipo PostgreSQL
+  titulo varchar(100)
+  fecha_creacion timestamp without time zone  // Tipo con espacios
+  contenido character varying(500)            // Tipo con espacios
+  tamanio double precision                    // Tipo con espacios
+  metadata jsonb                              // Tipo PostgreSQL
+}
+
+// ==========================================
+// WARNINGS: MySQL - Índices BTREE sin columnas
+// ==========================================
+
+Table mysql_db.productos {
+  id int [pk, not null]
+  nombre varchar(100)
+  precio decimal(10,2)
+  categoria varchar(50)
+
+  indexes {
+    () [type: btree, name: 'idx_precio']        // BTREE sin columnas
+    () [type: btree, name: 'idx_categoria']     // BTREE sin columnas
+  }
+}
+
+// ==========================================
+// WARNINGS: MySQL - Índice PRIMARY sin columnas
+// ==========================================
+
+Table mysql_db.ventas {
+  venta_id int [not null]
+  producto_id int [not null]
+  cantidad int
+  total decimal(10,2)
+
+  indexes {
+    () [type: primary, name: 'PRIMARY']  // PRIMARY sin columnas
+  }
+}
+
+// ==========================================
+// OK: Tabla correcta sin warnings
+// ==========================================
+
+Table test.tabla_correcta {
+  id int [pk, not null]
+  nombre varchar(100) [not null]
+  descripcion text
+  created_at timestamp [default: `now()`]
+
+  indexes {
+    (nombre) [type: btree, name: 'idx_nombre']
+  }
+}
+
+// ==========================================
+// WARNINGS: Tabla con múltiples problemas
+// ==========================================
+
+Table public.tabla_problematica {
+  IdRegistro int [not null]              // CamelCase (PG)
+  FechaModificacion timestamp            // CamelCase (PG)
+  TipoDocumento character varying(50)   // CamelCase + tipo con espacios (PG)
+  // No tiene PK
+}

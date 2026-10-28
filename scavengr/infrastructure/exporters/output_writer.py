@@ -10,11 +10,12 @@ Version: 0.0.1
 import csv
 import json
 import os
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
 
 try:
     from openpyxl import Workbook
     from openpyxl.styles import Alignment
+
     EXCEL_SUPPORT = True
 except ImportError:
     print("openpyxl no está instalado, la exportación a Excel no estará disponible")
@@ -24,7 +25,7 @@ except ImportError:
 
 class OutputWriter:
     """Clase para escribir diccionarios de datos en diferentes formatos."""
-    
+
     def __init__(
         self,
         output_path: str,
@@ -33,7 +34,7 @@ class OutputWriter:
     ):
         """
         Inicializar el escritor de salida.
-        
+
         Args:
             output_path: Ruta del archivo de salida
             output_format: Formato de salida (csv, json, excel)
@@ -43,7 +44,7 @@ class OutputWriter:
         self.output_format = output_format
         self.encoding = encoding
 
-    def _validate_output_permissions(self):
+    def _validate_output_permissions(self) -> None:
         """Validar permisos de escritura en la ruta de salida."""
         output_dir = os.path.dirname(self.output_path) or "."
         if not os.access(output_dir, os.W_OK):
@@ -51,13 +52,13 @@ class OutputWriter:
                 f"No se puede escribir en el directorio: {output_dir}"
             )
 
-    def write(self, data: List[Dict[str, Any]]):
+    def write(self, data: List[Dict[str, Any]]) -> None:
         """
         Escribir los datos en el formato especificado.
-        
+
         Args:
             data: Lista de diccionarios con los datos a escribir
-            
+
         Raises:
             ValueError: Si el formato no está soportado
             Exception: Si ocurre un error durante la escritura
@@ -77,13 +78,13 @@ class OutputWriter:
         else:
             raise ValueError(f"Formato no soportado: {self.output_format}")
 
-    def _write_csv(self, data: List[Dict[str, Any]]):
+    def _write_csv(self, data: List[Dict[str, Any]]) -> None:
         """
         Escribir los datos en formato CSV.
-        
+
         Args:
             data: Lista de diccionarios con los datos
-            
+
         Raises:
             Exception: Si ocurre un error durante la escritura
         """
@@ -107,13 +108,13 @@ class OutputWriter:
         except Exception as e:
             raise Exception(f"Error escribiendo CSV: {str(e)}")
 
-    def _write_json(self, data: List[Dict[str, Any]]):
+    def _write_json(self, data: List[Dict[str, Any]]) -> None:
         """
         Escribir los datos en formato JSON.
-        
+
         Args:
             data: Lista de diccionarios con los datos
-            
+
         Raises:
             Exception: Si ocurre un error durante la escritura
         """
@@ -123,13 +124,13 @@ class OutputWriter:
         except Exception as e:
             raise Exception(f"Error escribiendo JSON: {str(e)}")
 
-    def _write_excel(self, data: List[Dict[str, Any]]):
+    def _write_excel(self, data: List[Dict[str, Any]]) -> None:
         """
         Escribir los datos en formato Excel usando solo openpyxl.
-        
+
         Args:
             data: Lista de diccionarios con los datos
-            
+
         Raises:
             Exception: Si ocurre un error durante la escritura
         """
@@ -138,19 +139,19 @@ class OutputWriter:
             wb = Workbook()
             ws = wb.active
             ws.title = "Diccionario_Datos"
-            
+
             if not data:
                 # Si no hay datos, crear archivo vacío
                 wb.save(self.output_path)
                 return
-            
+
             # Obtener las columnas del primer registro
             headers = list(data[0].keys())
-            
+
             # Escribir encabezados
             for col_idx, header in enumerate(headers, 1):
                 ws.cell(row=1, column=col_idx, value=header)
-            
+
             # Escribir datos
             for row_idx, row_data in enumerate(data, 2):  # Empezar en fila 2
                 for col_idx, header in enumerate(headers, 1):
@@ -196,7 +197,9 @@ class OutputWriter:
                     col_idx = headers.index(header) + 1
 
                     # Aplicar wrap text a todas las celdas de la columna
-                    for row_idx in range(2, len(data) + 2):  # +2 porque la fila 1 es el header
+                    for row_idx in range(
+                        2, len(data) + 2
+                    ):  # +2 porque la fila 1 es el header
                         cell = ws.cell(row=row_idx, column=col_idx)
                         cell.alignment = Alignment(wrap_text=True, vertical="top")
                         ws.row_dimensions[row_idx].height = 25  # Altura ajustada
@@ -214,7 +217,7 @@ class OutputWriter:
 
                 # Ajustar altura basado en número de líneas
                 ws.row_dimensions[row_idx].height = 15 * max_line_count
-            
+
             # Guardar archivo
             wb.save(self.output_path)
 
@@ -224,10 +227,10 @@ class OutputWriter:
     def _get_column_letter(self, col_idx: int) -> str:
         """
         Convertir índice de columna a letra (1 = A, 2 = B, etc.).
-        
+
         Args:
             col_idx: Índice de columna (base 1)
-            
+
         Returns:
             str: Letra de la columna
         """

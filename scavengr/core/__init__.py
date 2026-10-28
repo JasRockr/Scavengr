@@ -10,29 +10,18 @@ Módulos:
 - interfaces: Interfaces y contratos (Ports)
 """
 
-from scavengr.core.entities import (
-    Column,
-    Table,
-    Relationship,
-    Index,
-    DatabaseSchema,
-)
-from scavengr.core.interfaces import (
-    IMetadataScanner,
-    IParser,
-    IFormatter,
-    IExporter,
-)
+from scavengr.core.entities import Column, DatabaseSchema, Index, Relationship, Table
+from scavengr.core.interfaces import IExporter, IFormatter, IMetadataScanner, IParser
 from scavengr.core.services import (
-    RegexInferenceService,
-    MaskGeneratorService,
-    QualityCriteriaService,
-    RelationshipAnalyzer,
-    ExampleGeneratorService,
-    ModuleClassifierService,
-    SensitivityAnalyzerService,
-    ObservationGeneratorService,
     DescriptionGeneratorService,
+    ExampleGeneratorService,
+    MaskGeneratorService,
+    ModuleClassifierService,
+    ObservationGeneratorService,
+    QualityCriteriaService,
+    RegexInferenceService,
+    RelationshipAnalyzer,
+    SensitivityAnalyzerService,
     StatisticsAnalyzerService,
 )
 
