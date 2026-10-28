@@ -27,12 +27,14 @@ Trabaja solo en tareas de esta fase salvo que se pida otra cosa. Puerta de salid
 
 ```bash
 pip install -e ".[dev,postgres,mysql,mssql]"
-pytest tests/unit -q                       # rápido, con mocks
-docker compose -f tests/lab/docker-compose.yml up -d
-pytest tests/integration -q -m lab         # contra el laboratorio
+pytest tests -m "not lab" -q              # rápido, con mocks
+docker compose -f tests/lab/docker-compose.yml up -d --wait
 npm ci --prefix tests/lab                  # una vez
+pytest tests/integration -m lab -q         # contra el laboratorio
 node tests/lab/dbmlcheck.js <archivo.dbml> # parser oficial de DBML
-ruff check scavengr && mypy scavengr
+ruff check scavengr tests                  # bloquea en CI (errores reales)
+bandit -r scavengr -ll                     # bloquea en CI (severidad media o alta)
+mypy scavengr                              # informativo hasta la Fase 1
 ```
 
 Comandos y rutas deben funcionar en Windows (PowerShell) y en Linux.
