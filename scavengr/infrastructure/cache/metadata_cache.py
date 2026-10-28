@@ -261,7 +261,7 @@ class MetadataCache:
             cached_time = datetime.fromisoformat(cache_data["timestamp"])
             age = datetime.now() - cached_time
 
-            if age > self.ttl:
+            if age >= self.ttl:
                 logger.info(
                     f"[CACHE] Cache expirado: {age.total_seconds() / 3600:.1f}h "
                     f"(TTL: {self.ttl.total_seconds() / 3600}h)"
@@ -366,7 +366,7 @@ class MetadataCache:
                 "path": str(cache_path),
                 "timestamp": cached_time.isoformat(),
                 "age_hours": age.total_seconds() / 3600,
-                "is_valid": age <= self.ttl,
+                "is_valid": age < self.ttl,
                 "size_bytes": cache_path.stat().st_size,
                 "serialization": self.serialization,
             }
