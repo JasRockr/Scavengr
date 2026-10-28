@@ -634,7 +634,6 @@ Solo para casos excepcionales (contenido sensible, violación de políticas).
 
 ### Documentación Relacionada
 
-- [Mejores Prácticas de Publicación](../docs/PUBLISH_BEST_PRACTICES.md)
 - [GitHub Branch Protection](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches)
 - [Python Packaging Guide](https://packaging.python.org/)
 - [Semantic Versioning](https://semver.org/)
