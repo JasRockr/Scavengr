@@ -1,0 +1,66 @@
+column_name,expected_min_level,expected_max_level,note
+email,ALTO,,dato personal o credencial
+correo,ALTO,,dato personal o credencial
+correo_electronico,ALTO,,dato personal o credencial
+CorreoElectronico,ALTO,,dato personal o credencial
+telefono,ALTO,,dato personal o credencial
+celular,ALTO,,dato personal o credencial
+movil,ALTO,,dato personal o credencial
+nombre,ALTO,,dato personal o credencial
+nombres,ALTO,,dato personal o credencial
+apellido,ALTO,,dato personal o credencial
+primer_apellido,ALTO,,dato personal o credencial
+NombreCompleto,ALTO,,dato personal o credencial
+direccion,ALTO,,dato personal o credencial
+direccion_residencia,ALTO,,dato personal o credencial
+numero_documento,ALTO,,dato personal o credencial
+num_documento,ALTO,,dato personal o credencial
+nro_identificacion,ALTO,,dato personal o credencial
+tipo_documento,MEDIO,,dato personal o credencial
+cedula,ALTO,,dato personal o credencial
+NumeroDocumento,ALTO,,dato personal o credencial
+nit,ALTO,,dato personal o credencial
+fecha_nacimiento,ALTO,,dato personal o credencial
+FechaNacimiento,ALTO,,dato personal o credencial
+fec_nac,ALTO,,dato personal o credencial
+edad,MEDIO,,dato personal o credencial
+sexo,MEDIO,,dato personal o credencial
+genero,MEDIO,,dato personal o credencial
+tarjeta_credito,CRÍTICO,,dato personal o credencial
+numero_tarjeta,CRÍTICO,,dato personal o credencial
+cvv,CRÍTICO,,dato personal o credencial
+pan,CRÍTICO,,dato personal o credencial
+cuenta_bancaria,ALTO,,dato personal o credencial
+numero_cuenta,ALTO,,dato personal o credencial
+iban,ALTO,,dato personal o credencial
+salario,ALTO,,dato personal o credencial
+sueldo,ALTO,,dato personal o credencial
+ingresos,ALTO,,dato personal o credencial
+password,ALTO,,dato personal o credencial
+password_hash,ALTO,,dato personal o credencial
+PasswordHash,ALTO,,dato personal o credencial
+api_key,ALTO,,dato personal o credencial
+token,ALTO,,dato personal o credencial
+ip_address,MEDIO,,dato personal o credencial
+direccion_ip,MEDIO,,dato personal o credencial
+latitud,MEDIO,,dato personal o credencial
+geolocalizacion,MEDIO,,dato personal o credencial
+placa,MEDIO,,dato personal o credencial
+foto,ALTO,,dato personal o credencial
+huella,CRÍTICO,,dato personal o credencial
+diagnostico,CRÍTICO,,dato personal o credencial
+eps,CRÍTICO,,dato personal o credencial
+religion,CRÍTICO,,dato personal o credencial
+tipo_sangre,CRÍTICO,,dato personal o credencial
+grupo_sanguineo,CRÍTICO,,dato personal o credencial
+discapacidad,CRÍTICO,,dato personal o credencial
+fe,BAJO,BAJO,no sensible (control de falsos positivos)
+genero_producto,BAJO,BAJO,no sensible (control de falsos positivos)
+ips_count,BAJO,BAJO,no sensible (control de falsos positivos)
+pass_through,BAJO,BAJO,no sensible (control de falsos positivos)
+pin_code_producto,BAJO,BAJO,no sensible (control de falsos positivos)
+fecha_pedido,BAJO,BAJO,no sensible (control de falsos positivos)
+telefono_empresa_count,BAJO,BAJO,no sensible (control de falsos positivos)
+cantidad,BAJO,BAJO,no sensible (control de falsos positivos)
+estado,BAJO,BAJO,no sensible (control de falsos positivos)
+codigo_producto,BAJO,BAJO,no sensible (control de falsos positivos)

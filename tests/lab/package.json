@@ -1,0 +1,11 @@
+{
+  "name": "scavengr-lab",
+  "private": true,
+  "description": "Validador DBML del laboratorio de integración de Scavengr (parser oficial de dbdiagram.io)",
+  "scripts": {
+    "dbmlcheck": "node dbmlcheck.js"
+  },
+  "dependencies": {
+    "@dbml/core": "^3.13.0"
+  }
+}
