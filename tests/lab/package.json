@@ -6,6 +6,6 @@
     "dbmlcheck": "node dbmlcheck.js"
   },
   "dependencies": {
-    "@dbml/core": "^3.13.0"
+    "@dbml/core": "^11.0.0"
   }
 }
