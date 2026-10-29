@@ -1,6 +1,5 @@
 """Tests unitarios para core.services - SensitivityAnalyzerService."""
 
-import pytest
 
 from scavengr.core.services import SensitivityAnalyzerService
 

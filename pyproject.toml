@@ -10,7 +10,7 @@ name = "scavengr"
 dynamic = ["version"]
 description = "Scavengr — Recolector y documentador de metadatos en bases de datos"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.11"
 license = "MIT"
 authors = [
   { name = "Json Rivera", email = "jsonrivera@proton.me" }
@@ -27,17 +27,16 @@ classifiers = [
   "Topic :: Software Development :: Documentation",
   "Topic :: System :: Systems Administration",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.8",
-  "Programming Language :: Python :: 3.9",
-  "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Operating System :: OS Independent"
 ]
 
 dependencies = [
-  "python-dotenv==1.1",
-  "openpyxl==3.1"
+  "python-dotenv>=1.0,<2",
+  "openpyxl>=3.1,<4"
 ]
 
 [project.urls]
@@ -58,6 +57,7 @@ dev = [
     "black>=21.0",
     "isort>=5.0",
     "mypy",
+    "ruff>=0.6,<1",
     "pre-commit",
     "safety",
     "bandit",
@@ -78,6 +78,19 @@ python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "-v --tb=short"
+markers = [
+    "lab: pruebas contra el laboratorio de bases de datos (tests/lab)",
+]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+extend-exclude = ["tests/lab/node_modules"]
+
+[tool.ruff.lint]
+# Solo errores reales: sintaxis, nombres indefinidos e imports sin usar. Bloquea en CI.
+# El resto de reglas se reporta sin bloquear hasta la Fase 1.
+select = ["E9", "F63", "F7", "F82", "F401"]
 
 [tool.coverage.run]
 source = ["scavengr"]
@@ -108,7 +121,7 @@ output = "coverage.xml"
 
 [tool.black]
 line-length = 88
-target-version = ["py38", "py39", "py310", "py311"]
+target-version = ["py311", "py312", "py313", "py314"]
 include = '\.pyi?$'
 extend-exclude = '''
 /(
@@ -137,7 +150,7 @@ ensure_newline_before_comments = true
 skip_gitignore = true
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.11"
 strict = true
 warn_return_any = true
 warn_unused_configs = true

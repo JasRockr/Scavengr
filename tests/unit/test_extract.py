@@ -9,13 +9,11 @@ Date: 2025-11-18
 
 import os
 import tempfile
-from pathlib import Path
 from unittest import mock
 
 import pytest
 
 from scavengr.application.extract import ExtractionResult, ExtractMetadata
-from scavengr.core.entities import Column, DatabaseSchema, Table
 
 
 class TestExtractMetadata:

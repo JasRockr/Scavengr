@@ -1,0 +1,115 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install "ruff>=0.6,<1" "mypy>=1.10,<2"
+      # Bloquea: solo errores reales (reglas en [tool.ruff.lint] de pyproject.toml)
+      - run: ruff check scavengr tests
+      # Informativo hasta la Fase 1
+      - name: Informe de estilo y tipos (no bloquea)
+        continue-on-error: true
+        run: |
+          ruff check scavengr --select E,F,W,B,UP --exit-zero --statistics
+          mypy scavengr --ignore-missing-imports
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install "bandit>=1.7,<2"
+      # Bloquea con severidad media o alta
+      - run: bandit -r scavengr -ll -q
+
+  unit:
+    name: unit (${{ matrix.python }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python: ["3.11", "3.12", "3.13", "3.14"]
+        include:
+          - os: windows-latest
+            python: "3.14"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # setuptools-scm calcula la versión con el historial
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: pip install -e ".[dev,postgres,mysql,mssql]"
+      - run: pytest tests -m "not lab" -q --cov=scavengr --cov-report=term
+
+  lab:
+    name: lab (${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.14"]
+    env:
+      SCAVENGR_LAB_REQUIRED: "1"
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Levantar el laboratorio
+        run: docker compose -f tests/lab/docker-compose.yml up -d --wait
+      - name: Cargar el script de SQL Server
+        run: docker compose -f tests/lab/docker-compose.yml exec -T mssql /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "Scavengr_Lab_2026!" -i /lab/mssql.sql
+      - name: Driver ODBC 18
+        run: |
+          # La imagen de GitHub suele traer ya el repositorio de Microsoft; solo se añade si falta
+          if ! grep -rqs "packages.microsoft.com/ubuntu" /etc/apt/sources.list /etc/apt/sources.list.d/; then
+            curl -sSL https://packages.microsoft.com/keys/microsoft.asc | sudo gpg --batch --yes --dearmor -o /usr/share/keyrings/microsoft-prod.gpg
+            curl -sSL "https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/prod.list" | sudo tee /etc/apt/sources.list.d/microsoft-prod.list
+          fi
+          sudo apt-get update
+          sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc
+          odbcinst -q -d
+      - run: npm ci --prefix tests/lab
+      - run: pip install -e ".[dev,postgres,mysql,mssql]"
+      - run: pytest tests/integration -m lab -q
+      - name: Logs del laboratorio
+        if: failure()
+        run: docker compose -f tests/lab/docker-compose.yml logs --tail=200
+
+  # Check único que exige el ruleset de main: pasa solo si pasaron todas las combinaciones
+  test:
+    if: always()
+    needs: [unit, lab]
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "unit=${{ needs.unit.result }} lab=${{ needs.lab.result }}"
+          test "${{ needs.unit.result }}" = "success" && test "${{ needs.lab.result }}" = "success"

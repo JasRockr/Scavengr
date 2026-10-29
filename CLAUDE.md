@@ -12,7 +12,7 @@ Fuente de verdad: `docs/auditoria-tecnica/README.md`. Si este archivo la contrad
 - Reflexión de esquemas: SQLAlchemy 2.x Inspector. SQL nativo solo para extras (procedimientos, triggers, estadísticas).
 - DBML: pydbml para leer y escribir; `@dbml/core` como validador en CI.
 - Modelo canónico: Pydantic v2, contrato versionado `scavengr.catalog/v1`. El DBML deja de ser formato intermedio.
-- Python `>=3.10`. Dependencias con rangos (`>=x,<y`), nunca pines exactos.
+- Python `>=3.11`: solo versiones con soporte de seguridad (la 3.10 dejó de tenerlo el 1 oct 2026; esto reemplaza el `>=3.10` de la auditoría). Dependencias con rangos (`>=x,<y`), nunca pines exactos.
 
 ## Fase actual: 0 — Estabilización (v0.0.5)
 
@@ -21,18 +21,20 @@ Trabaja solo en tareas de esta fase salvo que se pida otra cosa. Puerta de salid
 - Laboratorio PostgreSQL: 4/4 FK y 5/5 PK correctas, también con el rol de solo lectura `lector`.
 - DBML válido según `@dbml/core` en PostgreSQL, MariaDB y SQL Server.
 - `DB_PORT` no estándar respetado (el laboratorio usa 5433, 3307 y 14333 a propósito).
-- CI en verde con Python 3.10–3.13.
+- CI en verde con Python 3.11–3.14.
 
 ## Comandos
 
 ```bash
 pip install -e ".[dev,postgres,mysql,mssql]"
-pytest tests/unit -q                       # rápido, con mocks
-docker compose -f tests/lab/docker-compose.yml up -d
-pytest tests/integration -q -m lab         # contra el laboratorio
+pytest tests -m "not lab" -q              # rápido, con mocks
+docker compose -f tests/lab/docker-compose.yml up -d --wait
 npm ci --prefix tests/lab                  # una vez
+pytest tests/integration -m lab -q         # contra el laboratorio
 node tests/lab/dbmlcheck.js <archivo.dbml> # parser oficial de DBML
-ruff check scavengr && mypy scavengr
+ruff check scavengr tests                  # bloquea en CI (errores reales)
+bandit -r scavengr -ll                     # bloquea en CI (severidad media o alta)
+mypy scavengr                              # informativo hasta la Fase 1
 ```
 
 Comandos y rutas deben funcionar en Windows (PowerShell) y en Linux.

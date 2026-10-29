@@ -11,13 +11,16 @@ Version: 0.0.1
 
 from typing import Any, Dict, List, Optional
 
-# Importar conectores de bases de datos
+# Importar conectores de bases de datos. Si falta un driver, el módulo queda en None y la
+# tupla de errores vacía, para que los nombres existan siempre (connect() lo valida antes).
 try:
     import mysql.connector as mysql
     from mysql.connector import Error as mysql_errors
 
     MYSQL_AVAILABLE = True
 except ImportError:
+    mysql = None  # type: ignore[assignment]
+    mysql_errors = ()  # type: ignore[assignment,misc]
     MYSQL_AVAILABLE = False
 
 try:
@@ -26,6 +29,8 @@ try:
 
     PGSQL_AVAILABLE = True
 except ImportError:
+    pgsql = None  # type: ignore[assignment]
+    pgsql_errors = ()  # type: ignore[assignment,misc]
     PGSQL_AVAILABLE = False
 
 try:
@@ -34,6 +39,8 @@ try:
 
     MSSQL_AVAILABLE = True
 except ImportError:
+    mssql = None  # type: ignore[assignment]
+    mssql_errors = ()  # type: ignore[assignment,misc]
     MSSQL_AVAILABLE = False
 
 from scavengr.config.config_manager import ConfigManager
