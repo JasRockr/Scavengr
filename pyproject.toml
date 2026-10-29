@@ -1,9 +1,9 @@
 [build-system]
-requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
+requires = ["setuptools>=78.1.1,<90", "setuptools-scm>=8,<11"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
-write_to = "scavengr/_version.py"
+version_file = "scavengr/_version.py"
 
 [project]
 name = "scavengr"
@@ -35,7 +35,7 @@ classifiers = [
 ]
 
 dependencies = [
-  "python-dotenv>=1.0,<2",
+  "python-dotenv>=1.2.2,<2",
   "openpyxl>=3.1,<4"
 ]
 
@@ -46,22 +46,21 @@ Issues = "https://github.com/JasRockr/Scavengr/issues"
 Documentation = "https://github.com/JasRockr/Scavengr#readme"
 
 [project.optional-dependencies]
-postgres = ["psycopg2-binary>=2.9"]
-mysql = ["PyMySQL>=1.0", "mysql-connector-python>=9.1.0"]
-mssql = ["pyodbc>=4.0"]
-all-db = ["psycopg2-binary>=2.9", "PyMySQL>=1.0", "mysql-connector-python>=9.1.0", "pyodbc>=4.0"]
+postgres = ["psycopg2-binary>=2.9,<3"]
+mysql = ["PyMySQL>=1.1.1,<2", "mysql-connector-python>=9.1.0,<27"]
+mssql = ["pyodbc>=5.0,<6"]
+all-db = ["psycopg2-binary>=2.9,<3", "PyMySQL>=1.1.1,<2", "mysql-connector-python>=9.1.0,<27", "pyodbc>=5.0,<6"]
 dev = [
-    "pytest>=7.0",
-    "pytest-cov>=2.0",
-    "flake8>=3.8",
-    "black>=21.0",
-    "isort>=5.0",
-    "mypy",
+    "pytest>=9.0.3,<10",
+    "pytest-cov>=7.0,<8",
+    "flake8>=7.0,<8",
+    "black>=26.10.1,<27",
+    "isort>=9.0,<10",
+    "mypy>=2.0,<3",
     "ruff>=0.6,<1",
-    "pre-commit",
-    "safety",
-    "bandit",
-    "jinja2>=3.1.6"  # Requerida por safety para generar reportes
+    "pre-commit>=4.0,<5",
+    "bandit>=1.9,<2",
+    "pip-audit>=2.10,<3"
 ]
 
 [project.scripts]
