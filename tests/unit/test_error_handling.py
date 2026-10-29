@@ -4,7 +4,7 @@ Tests para manejo de errores en Scavengr.
 Verifica que todas las excepciones personalizadas se lancen correctamente
 en los escenarios apropiados y que contengan la información necesaria.
 
-Author: Jason Rivera
+Author: Json Rivera
 Date: 2025-11-18
 """
 

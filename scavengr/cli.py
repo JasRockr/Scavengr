@@ -17,7 +17,7 @@ Comandos disponibles (orden lógico de uso):
 - scavengr dictionary -i <dbml> -o <outputd>    → exportar diccionario
 - scavengr report -i <dbml> -o <output>         → generar informe analítico
 
-Author: Jason Rivera
+Author: Json Rivera
 Date: 2025-10-09
 """
 
@@ -535,9 +535,9 @@ EJEMPLOS DE USO:
     scavengr dictionary -i esquema.dbml -o dict.csv     # Exportar a CSV
     scavengr report -i esquema.dbml -o report.json      # Solo reporte
 
-  Uso con caché (mejora rendimiento ~90%):
+  Uso con caché (24 horas):
     scavengr extract --cache -o schema.dbml        # Primera extracción (crea caché)
-    scavengr extract --cache -o schema.dbml        # Subsecuentes (~90% más rápido)
+    scavengr extract --cache -o schema.dbml        # Siguientes: lee de la caché
     scavengr extract --cache --force-refresh -o schema.dbml  # Invalidar y reextraer
 
   Modo detallado (debugging):
@@ -589,18 +589,15 @@ EJEMPLOS:
 
   Uso con caché (recomendado para esquemas grandes):
   scavengr extract --cache -o schema.dbml         # Habilitar caché (primera vez)
-  scavengr extract --cache -o schema.dbml         # Usar caché (~90% más rápido)
+  scavengr extract --cache -o schema.dbml         # Leer de la caché
   scavengr extract --cache --force-refresh -o schema.dbml  # Invalidar caché
 
 SISTEMA DE CACHÉ:
-  📦 MetadataCache - Reducción ~90% en tiempo de extracciones subsecuentes
-
   Características:
-    • Serialización: Pickle (rápido) o JSON (portable)
-    • TTL: 24 horas por defecto (configurable)
-    • Ubicación: .scavengr_cache/ (auto-creado, ignorado por git)
-    • Clave: Hash de configuración BD (type + host + name)
-    • Gestión automática de expiración
+    • Serialización: pickle
+    • Vence a las 24 horas
+    • Ubicación: .scavengr_cache/ en el directorio actual (auto-creado)
+    • Clave: hash de type + host + name (no incluye puerto ni usuario)
 
   Flags:
     --cache              Habilita caché de metadatos
@@ -624,12 +621,13 @@ SALIDA:
         help="Archivo DBML de salida (por defecto: <prefijo>_extracted.dbml)",
     )
     extract_parser.add_argument(
-        "--env-file", help="Archivo .env específico a usar (por defecto: .env)"
+        "--env-file",
+        help="Archivo .env específico a usar. Hoy lo pisan .env.local, .env y ~/.scavengr.env si existen",
     )
     extract_parser.add_argument(
         "--cache",
         action="store_true",
-        help="Habilita caché de metadatos con MetadataCache (serialización pickle/JSON, TTL 24h, reducción ~90%% tiempo)",
+        help="Guarda los metadatos en .scavengr_cache/ y los reutiliza durante 24 horas",
     )
     extract_parser.add_argument(
         "--force-refresh",
@@ -641,22 +639,24 @@ SALIDA:
     validate_parser: argparse.ArgumentParser = subparsers.add_parser(
         Commands.VALIDATE,
         help="Validar archivo DBML existente",
-        description="Valida sintaxis, estructura e integridad de un archivo DBML",
+        description="Revisa estructura y relaciones de un archivo DBML",
         epilog="""
 EJEMPLOS:
-  scavengr validate -i mi-esquema.dbml            # Validación completa
+  scavengr validate -i mi-esquema.dbml            # Validar
   scavengr --verbose validate -i esquema.dbml     # Con detalles de cada validación
 
 VALIDACIONES REALIZADAS:
   ✓ Existencia y permisos del archivo
-  ✓ Sintaxis DBML correcta
-  ✓ Estructura de tablas y columnas
-  ✓ Integridad de relaciones
-  ✓ Calidad de datos (CamelCase, tipos, índices, etc.)
+  ✓ Que el archivo se pueda parsear
+  ✓ Tablas con columnas y llave primaria
+  ✓ Relaciones que apuntan a tablas y columnas existentes
+  ✓ Patrones por motor (índices sin columnas, camelCase, tipos con espacios)
+
+  No es una validación completa del formato DBML.
 
 SALIDA:
-  - Reporte de validación con errores y advertencias
-  - Estadísticas: tablas, columnas, relaciones
+  - Errores y advertencias
+  - Estadísticas: tablas y relaciones
         """,
         formatter_class=ScavengrHelpFormatter,
     )
@@ -668,22 +668,24 @@ SALIDA:
     dict_parser: argparse.ArgumentParser = subparsers.add_parser(
         Commands.DICTIONARY,
         help="Generar diccionario de datos desde DBML",
-        description="Genera diccionario de datos profesional con 19 campos especializados",
+        description="Genera el diccionario de datos: una fila por columna con 19 campos",
         epilog="""
 EJEMPLOS:
-  scavengr dictionary -i esquema.dbml -o diccionario.xlsx   # Excel (por defecto)
+  scavengr dictionary -i esquema.dbml -o diccionario.xlsx   # Excel
   scavengr dictionary -i esquema.dbml -o diccionario.csv    # CSV
   scavengr dictionary -i esquema.dbml -o diccionario.json   # JSON
 
 CAMPOS GENERADOS (19):
-  Tabla, Columna, Tipo, Tamaño, PK, FK, Nullable, Default
-  Sensibilidad, Descripción, Máscara, Ejemplo, Criterios
-  Observaciones, Módulo, Referencias, Índices, Patrones, Recomendaciones
+  TABLA, NOMBRE_DATO, TIPO_DE_DATO, LONGITUD, DESCRIPCION, REGEX,
+  MASCARA, CRITERIOS_CALIDAD, TABLA_MAESTRA, CAMPO_MAESTRO,
+  TIPO_RELACION, ES_MAESTRA, ES_PK, ES_NULLABLE, EJEMPLOS_VALIDOS,
+  FUENTE_CAPTURA, MODULO, SENSIBILIDAD, OBSERVACIONES
 
 FORMATOS SOPORTADOS:
-  .xlsx - Excel con formato y colores (recomendado)
-  .csv  - CSV separado por comas (compatible con Excel/Sheets)
-  .json - JSON estructurado (para integración)
+  .xlsx/.xls - Excel con formato y colores
+  .csv       - CSV separado por comas
+  .json      - JSON
+  Con -f se fija el formato sin importar la extensión.
         """,
         formatter_class=ScavengrHelpFormatter,
     )
@@ -704,35 +706,31 @@ FORMATOS SOPORTADOS:
     report_parser: argparse.ArgumentParser = subparsers.add_parser(
         Commands.REPORT,
         help="Generar informe con análisis desde archivo DBML",
-        description="Genera análisis detallado con score de calidad en 7 dimensiones",
+        description="Genera un informe de calidad del esquema",
         epilog="""
 EJEMPLOS:
   scavengr report -i esquema.dbml -o reporte.xlsx      # Reporte Excel
   scavengr report -i esquema.dbml -o reporte.json      # Reporte JSON
-  scavengr report -i esquema.dbml -o reporte.csv       # Reporte CSV
   scavengr --verbose report -i esquema.dbml -o reporte.xlsx  # Con detalles
 
 ANÁLISIS INCLUIDO:
-  📊 Score de Calidad (7 dimensiones):
-    - Nomenclatura de tablas y columnas
-    - Normalización de datos
+  📊 Score de calidad (4 dimensiones):
+    - Completitud
     - Integridad referencial
-    - Tipos de datos
-    - Índices
+    - Consistencia de nombres
     - Documentación
-    - Seguridad
 
   📈 Estadísticas:
     - Distribución de tipos de datos
-    - Análisis de tamaños
-    - Métricas de relaciones
+    - Relaciones
+    - Sensibilidad de las columnas
 
-  💡 Recomendaciones priorizadas por impacto
+  💡 Recomendaciones
 
 SALIDA:
-  - Múltiples hojas (Excel) o secciones (JSON)
-  - Resumen ejecutivo
-  - Análisis detallado por tabla
+  - .xlsx: Excel de 5 hojas (Resumen General, Calidad de Datos,
+    Tipos de Datos, Seguridad, Recomendaciones)
+  - Cualquier otra extensión: JSON
         """,
         formatter_class=ScavengrHelpFormatter,
     )
@@ -757,13 +755,11 @@ CONFIGURACIÓN:
   El archivo .env contiene:
     - Tipo y credenciales de BD (PostgreSQL, MySQL, SQL Server)
     - Parámetros de generación (prefijos, nombres de sistema)
-    - Rutas de salida
 
 NOTAS:
-  - Se crea solo si no existe
+  - Si el archivo ya existe, pregunta antes de sobrescribirlo
   - Los valores por defecto son ejemplos (ACTUALIZAR con tus datos)
-  - Archivo global (~/.scavengr.env) tiene prioridad menor
-  - Archivo local (.env) sobrescribe la configuración
+  - Hoy ~/.scavengr.env se carga de último y pisa al .env local
 
 SEGURIDAD:
   ⚠️  El archivo .env contiene credenciales - NUNCA lo debes incluir en commits con Git

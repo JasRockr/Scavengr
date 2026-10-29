@@ -3,7 +3,7 @@
 Tests para el caso de uso de extracción de metadatos de bases de datos.
 Verifica la orquestación completa del proceso de extracción.
 
-Author: Jason Rivera
+Author: Json Rivera
 Date: 2025-11-18
 """
 
