@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scavengr - Herramienta Python para Extracción de Metadatos de Bases de Datos</title>
-    <meta name="description" content="Scavengr es una herramienta CLI para extraer, validar y documentar metadatos de bases de datos con inteligencia automática">
+    <meta name="description" content="Scavengr lee los metadatos de PostgreSQL, MySQL/MariaDB y SQL Server y genera DBML, un diccionario de datos con la sensibilidad de cada columna y un informe de calidad">
     <meta name="author" content="Json Rivera">
     <style>
         :root {
@@ -340,16 +340,14 @@
     <header class="header">
         <div class="container">
             <div class="badges">
-                <span class="badge">Python 3.8+</span>
+                <span class="badge">Python 3.11+</span>
                 <span class="badge">MIT License</span>
-                <span class="badge">Alpha v0.0.4</span>
-                <span class="badge">282 tests</span>
-                <span class="badge">74% coverage</span>
+                <span class="badge">Alfa</span>
             </div>
             <div class="hero">
                 <h1>🗃️ Scavengr</h1>
                 <p class="tagline">"Descubre lo que tus bases esconden."</p>
-                <p>Herramienta CLI para extraer, validar y documentar metadatos de bases de datos con inteligencia automática 🧠✨</p>
+                <p>Herramienta de línea de comandos que lee los metadatos de PostgreSQL, MySQL/MariaDB y SQL Server y genera DBML, un diccionario de datos con la sensibilidad de cada columna y un informe de calidad del esquema.</p>
                 <div class="cta-buttons">
                     <a href="https://scavengr.jsonrivera.dev/docs/" class="btn btn-primary">
                         <span>📚 Documentación</span>
@@ -376,27 +374,27 @@
                 <div class="feature-card">
                     <div class="feature-icon">🔍</div>
                     <h3>Extracción de Metadatos</h3>
-                    <p>Soporte para PostgreSQL, MySQL/MariaDB y SQL Server. Extracción completa de tablas, columnas, tipos de datos, relaciones e índices.</p>
+                    <p>PostgreSQL, MySQL/MariaDB y SQL Server. Lee tablas, columnas, tipos, llaves primarias y foráneas e índices, y los escribe en DBML.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">📊</div>
-                    <h3>Diccionarios de Datos Profesionales</h3>
-                    <p>Formato Excel avanzado con 19 campos especializados. Análisis de sensibilidad automático y descripciones inteligentes.</p>
+                    <h3>Diccionario de Datos</h3>
+                    <p>Excel, CSV o JSON con 19 campos por columna: descripción, regex, máscara, ejemplos, módulo y sensibilidad (de BAJO a CRÍTICO), decidida por el nombre de la columna.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">✅</div>
                     <h3>Validación de Esquemas DBML</h3>
-                    <p>Validación exhaustiva de sintaxis, estructura y consistencia. Detección de errores en tablas, relaciones y claves. Validaciones proactivas de calidad (CamelCase, tipos, índices, autoreferences).</p>
+                    <p>Revisa que el DBML se pueda parsear, que las tablas tengan columnas y PK, y que las relaciones apunten a columnas que existen. Avisa de patrones típicos de cada motor.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">📈</div>
-                    <h3>Reportes Analíticos</h3>
-                    <p>Score de calidad en 7 dimensiones. Análisis estadístico y recomendaciones priorizadas por impacto.</p>
+                    <h3>Informe de Calidad</h3>
+                    <p>Puntuación de calidad (completitud, integridad referencial, nombres y documentación), distribución de tipos, sensibilidad y recomendaciones, en Excel o JSON.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">⚡</div>
-                    <h3>Sistema de Caché Inteligente</h3>
-                    <p>Caché automático de metadatos con TTL de 24 horas. Reducción del 90% en tiempo de extracciones subsecuentes. Serialización Pickle o JSON.</p>
+                    <h3>Caché de Metadatos</h3>
+                    <p>Con <code>--cache</code>, guarda lo extraído durante 24 horas y lo reutiliza en vez de volver a consultar la base.</p>
                 </div>
             </div>
         </div>
@@ -443,19 +441,19 @@
         <div class="container">
             <div class="section-header">
                 <h2>⚡ Instalación</h2>
-                <p>Múltiples formas de instalar y comenzar a usar Scavengr</p>
+                <p>Python 3.11 o superior, con el extra del motor que vas a usar</p>
             </div>
             <div class="installation-options">
                 <div class="install-option">
                     <h3>Desde PyPI (Recomendado)</h3>
                     <div class="code-block">
-                        <code><span class="code-comment"># Instalación básica</span><br>pip install scavengr<br><br><span class="code-comment"># Verificar instalación</span><br>scavengr --version<br><br><span class="code-comment"># Configuración inicial</span><br>scavengr init</code>
+                        <code><span class="code-comment"># PostgreSQL; también [mysql], [mssql] o [all-db]</span><br>pip install "scavengr[postgres]"<br><br><span class="code-comment"># Verificar instalación</span><br>scavengr --version<br><br><span class="code-comment"># Configuración inicial</span><br>scavengr init</code>
                     </div>
                 </div>
                 <div class="install-option">
                     <h3>Desde Fuente (Desarrollo)</h3>
                     <div class="code-block">
-                        <code><span class="code-comment"># Clonar repositorio</span><br>git clone https://github.com/JasRockr/Scavengr.git<br>cd Scavengr<br><br><span class="code-comment"># Instalar en modo desarrollo</span><br>pip install -e .</code>
+                        <code><span class="code-comment"># Clonar repositorio</span><br>git clone https://github.com/JasRockr/Scavengr.git<br>cd Scavengr<br><br><span class="code-comment"># Instalar en modo desarrollo</span><br>pip install -e ".[dev,postgres,mysql,mssql]"</code>
                     </div>
                 </div>
             </div>
@@ -479,7 +477,7 @@
                 <div class="feature-card">
                     <h3>Extraer y Validar</h3>
                     <div class="code-block">
-                        <code><span class="code-comment"># Extraer esquema completo</span><br>scavengr extract -o mi-esquema.dbml<br><br><span class="code-comment"># Con caché (90% más rápido)</span><br>scavengr extract --cache -o mi-esquema.dbml<br><br><span class="code-comment"># Validar estructura</span><br>scavengr validate -i mi-esquema.dbml</code>
+                        <code><span class="code-comment"># Extraer esquema completo</span><br>scavengr extract -o mi-esquema.dbml<br><br><span class="code-comment"># Con caché de 24 horas</span><br>scavengr extract --cache -o mi-esquema.dbml<br><br><span class="code-comment"># Validar estructura</span><br>scavengr validate -i mi-esquema.dbml</code>
                     </div>
                 </div>
                 <div class="feature-card">
@@ -492,70 +490,25 @@
         </div>
     </section>
 
-    <!-- Quality Assurance -->
+    <!-- Estado -->
     <section class="section">
         <div class="container">
             <div class="section-header">
-                <h2>✅ Validación y Calidad de Código (v0.0.4)</h2>
-                <p>Type hints completos • 0 errores mypy • 282/282 tests pasando • 74% coverage</p>
+                <h2>⚠️ Estado del Proyecto</h2>
+                <p>Scavengr está en alfa. Una auditoría técnica de octubre de 2026 encontró fallos que dan resultados incorrectos sin avisar, y los estoy corrigiendo en la versión 0.0.5.</p>
             </div>
             <div class="features-grid">
                 <div class="feature-card">
-                    <h3>🔍 Type Checking</h3>
-                    <div class="code-block">
-                        <code><span class="code-comment"># Validar tipos de datos (mypy strict)</span><br>python -m mypy scavengr/ --strict<br><br><span class="code-comment"># Resultado esperado:</span><br><span class="code-string">Success: no issues found</span></code>
-                    </div>
+                    <h3>Limitaciones conocidas</h3>
+                    <p>Se ignoran el puerto y el driver configurados; en PostgreSQL, las llaves foráneas pueden salir mal y un usuario de solo lectura no ve PK ni FK; las columnas camelCase se pierden entre pasos; y la clasificación de sensibilidad detecta pocas columnas personales.</p>
                 </div>
                 <div class="feature-card">
-                    <h3>🧪 Ejecutar Tests</h3>
-                    <div class="code-block">
-                        <code><span class="code-comment"># Tests unitarios e integración</span><br>python -m pytest tests/ -v<br><br><span class="code-comment"># Con cobertura</span><br>python -m pytest tests/ --cov=scavengr</code>
-                    </div>
+                    <h3>Cómo lo estoy probando</h3>
+                    <p>Cada arreglo lleva una prueba contra un laboratorio con PostgreSQL, MariaDB y SQL Server reales, y el DBML se valida con el parser oficial. El CI corre en Python 3.11 a 3.14.</p>
                 </div>
                 <div class="feature-card">
-                    <h3>📊 Validación Completa</h3>
-                    <div class="code-block">
-                        <code><span class="code-comment"># Type checking + Tests + Linting</span><br>python -m mypy scavengr/ --strict && \<br>python -m pytest tests/ -v && \<br>python -m flake8 scavengr/</code>
-                    </div>
-                </div>
-                <div class="feature-card">
-                    <h3>🎨 Formateo Automático</h3>
-                    <div class="code-block">
-                        <code><span class="code-comment"># Black - Formateador</span><br>python -m black scavengr/<br><br><span class="code-comment"># isort - Organizar imports</span><br>python -m isort scavengr/</code>
-                    </div>
-                </div>
-                <div class="feature-card">
-                    <h3>📈 Análisis de Coverage</h3>
-                    <div class="code-block">
-                        <code><span class="code-comment"># Generar reporte HTML</span><br>python -m pytest tests/ \<br>  --cov=scavengr \<br>  --cov-report=html<br><br><span class="code-comment"># Abrir: htmlcov/index.html</span></code>
-                    </div>
-                </div>
-                <div class="feature-card">
-                    <h3>🚀 Instalación Desarrollo</h3>
-                    <div class="code-block">
-                        <code><span class="code-comment"># Con todas las dependencias</span><br>pip install -e ".[dev]"<br><br><span class="code-comment"># Pre-commit hooks</span><br>pre-commit install</code>
-                    </div>
-                </div>
-            </div>
-            <div style="margin-top: 3rem; background: white; padding: 2rem; border-radius: 12px; border: 2px solid var(--accent);">
-                <h3 style="margin-bottom: 1rem;">📋 Métricas de Calidad</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
-                    <div style="text-align: center;">
-                        <div style="font-size: 2rem; font-weight: bold; color: var(--success);">0</div>
-                        <div style="color: var(--text-light);">Errores Mypy</div>
-                    </div>
-                    <div style="text-align: center;">
-                        <div style="font-size: 2rem; font-weight: bold; color: var(--success);">51/51</div>
-                        <div style="color: var(--text-light);">Tests Pasando</div>
-                    </div>
-                    <div style="text-align: center;">
-                        <div style="font-size: 2rem; font-weight: bold; color: var(--success);">100%</div>
-                        <div style="color: var(--text-light);">Type Coverage</div>
-                    </div>
-                    <div style="text-align: center;">
-                        <div style="font-size: 2rem; font-weight: bold; color: var(--success);">33</div>
-                        <div style="color: var(--text-light);">Archivos Tipados</div>
-                    </div>
+                    <h3>Más detalle</h3>
+                    <p>La lista completa y el plan hasta la v1.0 están en la <a href="https://github.com/JasRockr/Scavengr/blob/main/docs/auditoria-tecnica/README.md">auditoría técnica</a> y en el <a href="https://github.com/JasRockr/Scavengr#estado-del-proyecto">README</a>.</p>
                 </div>
             </div>
         </div>

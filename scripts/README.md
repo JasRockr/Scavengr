@@ -67,7 +67,7 @@ Ejecuta automáticamente:
 ### Software Necesario
 
 ```powershell
-# Python 3.8+
+# Python (Scavengr exige 3.11+)
 python --version
 
 # Git configurado
@@ -165,10 +165,7 @@ $TwineVersion = "6.0.1"
 # PASO 2: Crear Pull Request en GitHub
 # (El script muestra la URL exacta)
 
-# PASO 3: Esperar CI/CD checks
-# - Tests
-# - Linting
-# - Coverage
+# PASO 3: Esperar los checks del CI (en Scavengr: test, lint y security)
 
 # PASO 4: Aprobar y mergear PR
 

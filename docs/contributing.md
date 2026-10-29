@@ -1,257 +1,59 @@
-# Contribuir a Scavengr
+# Cómo contribuir
 
-¡Gracias por tu interés en contribuir! Esta guía te ayudará a empezar.
+Gracias por el interés. Antes de un cambio grande, abre un [issue](https://github.com/JasRockr/Scavengr/issues) para conversarlo: el proyecto está en plena estabilización y el plan de cada fase está en la [auditoría técnica](https://github.com/JasRockr/Scavengr/blob/main/docs/auditoria-tecnica/README.md).
 
----
-
-## 🚀 Configuración del Entorno
-
-### 1. Fork y Clone
+## Entorno
 
 ```bash
-# Fork el repositorio en GitHub
-# Luego clona tu fork
-git clone https://github.com/TU_USUARIO/Scavengr.git
+git clone https://github.com/<tu-usuario>/Scavengr.git
 cd Scavengr
-```
-
-### 2. Crear Entorno Virtual
-
-```bash
-# Crear entorno
 python -m venv .venv
-
-# Activar (Windows PowerShell)
-.venv\Scripts\Activate.ps1
-
-# Activar (Linux/Mac)
-source .venv/bin/activate
-```
-
-### 3. Instalar Dependencias
-
-```bash
-# Instalación en modo desarrollo
-pip install -e ".[dev]"
-
-# Pre-commit hooks
+.venv\Scripts\Activate.ps1          # Windows (PowerShell)
+source .venv/bin/activate           # Linux/macOS
+pip install -e ".[dev,postgres,mysql,mssql]"
 pre-commit install
 ```
 
----
+Necesitas Python 3.11 o superior. Para las pruebas contra bases reales, también Docker y Node.js.
 
-## 🧪 Testing
-
-### Ejecutar Tests
+## Pruebas
 
 ```bash
-# Todos los tests
-pytest
-
-# Con cobertura
-pytest --cov=scavengr --cov-report=html
-
-# Tests específicos
-pytest tests/unit/test_entities.py
-pytest -k "test_column"
+pytest tests -m "not lab" -q                                   # rápidas, con mocks
+docker compose -f tests/lab/docker-compose.yml up -d --wait    # laboratorio
+npm ci --prefix tests/lab                                      # @dbml/core, una vez
+pytest tests/integration -m lab -q                             # contra el laboratorio
 ```
 
-### Escribir Tests
+El laboratorio (`tests/lab`) levanta PostgreSQL 16 en el puerto 5433, MariaDB 10.11 en el 3307 y SQL Server 2022 en el 14333, con esquemas pensados para reproducir los hallazgos de la auditoría. Sus credenciales son públicas y solo sirven para el laboratorio.
 
-- **Ubicación**: `tests/unit/` o `tests/integration/`
-- **Nomenclatura**: `test_*.py`
-- **Coverage mínimo**: 80% para nuevos módulos
+Las pruebas nuevas van en `tests/unit/` o `tests/integration/`. Las que necesitan el laboratorio llevan el marcador `lab`.
 
-Ejemplo:
+## Estilo y revisiones
 
-```python
-def test_column_entity_creation():
-    """Test creación de ColumnMetadata."""
-    column = ColumnMetadata(
-        name="user_id",
-        data_type="integer",
-        is_nullable=False,
-        is_primary_key=True
-    )
-    assert column.name == "user_id"
-    assert column.is_primary_key is True
-```
+| Comando | En CI |
+| --- | --- |
+| `ruff check scavengr tests` | Bloquea: solo errores reales (sintaxis, nombres indefinidos, imports sin usar) |
+| `bandit -r scavengr -ll` | Bloquea: problemas de seguridad de severidad media o alta |
+| `mypy scavengr` | Informativo hasta la Fase 1 |
 
----
+`pre-commit` aplica black, isort y flake8 antes de cada commit. Las líneas son de 88 caracteres y los docstrings, estilo Google: la [referencia de la API](api/core/entities.md) se genera desde ellos.
 
-## 🎨 Code Style
+## Commits y PR
 
-### Herramientas
+- Ramas desde `main`: `feat/…`, `fix/…`, `docs/…` o `chore/…`.
+- Mensajes con [Conventional Commits](https://www.conventionalcommits.org/es/): `fix(scanner): …`, `docs: …`. Si el cambio corrige un hallazgo de la auditoría, pon su ID al final: `[C2]`.
+- Cada arreglo de un hallazgo lleva primero una prueba que falla contra el laboratorio y después el arreglo.
+- Para fusionar en `main` tienen que pasar los checks `test`, `lint` y `security`.
+- Si cambias el comportamiento, actualiza el README, `docs/` y el CHANGELOG en el mismo PR.
 
-Usamos:
-
-- **Black**: Formateo automático
-- **Isort**: Ordenamiento de imports
-- **Flake8**: Linting
-- **MyPy**: Type checking
-
-### Pre-commit Hooks
-
-Los hooks se ejecutan automáticamente en cada commit:
+## Documentación
 
 ```bash
-# Ejecutar manualmente
-pre-commit run --all-files
-
-# Actualizar hooks
-pre-commit autoupdate
+pip install mkdocs-material "mkdocstrings[python]"
+mkdocs serve        # http://127.0.0.1:8000
 ```
 
-### Convenciones
+## Reportar un error
 
-- **PEP 8**: Estilo general
-- **Type hints**: Siempre que sea posible
-- **Docstrings**: Estilo Google
-- **Line length**: 88 caracteres (Black default)
-
-Ejemplo de docstring:
-
-```python
-def extract_metadata(connection: DatabaseConnector) -> DatabaseSchema:
-    """Extrae metadatos de la base de datos.
-
-    Args:
-        connection: Conexión activa a la base de datos.
-
-    Returns:
-        DatabaseSchema con tablas, columnas y relaciones.
-
-    Raises:
-        DatabaseConnectionError: Si la conexión falla.
-    """
-```
-
----
-
-## 🏗️ Arquitectura
-
-### Clean Architecture
-
-```text
-scavengr/
-├── core/              # Entidades de dominio
-├── application/       # Casos de uso
-├── infrastructure/    # Implementaciones
-└── cli.py            # Interfaz CLI
-```
-
-### Principios
-
-- **SRP**: Una responsabilidad por clase
-- **DRY**: No repetir código
-- **KISS**: Mantener simple
-- **YAGNI**: No implementar hasta que sea necesario
-
----
-
-## 🔀 Workflow de Contribución
-
-### 1. Crear Branch
-
-```bash
-# Feature branch
-git checkout -b feature/nombre-descriptivo
-
-# Bug fix branch
-git checkout -b fix/descripcion-bug
-```
-
-### 2. Hacer Cambios
-
-- Escribe código limpio y documentado
-- Agrega tests para nuevas funcionalidades
-- Verifica que los tests pasen
-
-### 3. Commit
-
-```bash
-# Commits descriptivos
-git add .
-git commit -m "feat: Agregar soporte para Oracle Database"
-git commit -m "fix: Corregir parsing de índices MySQL"
-git commit -m "docs: Actualizar guía de instalación"
-```
-
-### 4. Push y Pull Request
-
-```bash
-# Push a tu fork
-git push origin feature/nombre-descriptivo
-
-# Crear Pull Request en GitHub
-# Incluir:
-# - Descripción clara del cambio
-# - Tests agregados/modificados
-# - Screenshots si aplica
-```
-
----
-
-## 📝 Documentación
-
-### Actualizar Docs
-
-```bash
-# Construir documentación
-mkdocs build
-
-# Servidor local
-mkdocs serve
-# Visitar: http://127.0.0.1:8000
-```
-
-### Agregar Documentación
-
-- **API**: Actualizar docstrings (mkdocstrings lo genera automáticamente)
-- **Guías**: Editar archivos en `docs/guide/`
-- **README**: Mantener sincronizado con docs/
-
----
-
-## ✅ Checklist antes de PR
-
-- [ ] Tests pasan (`pytest`)
-- [ ] Coverage >80% (`pytest --cov`)
-- [ ] Pre-commit hooks pasan
-- [ ] Documentación actualizada
-- [ ] CHANGELOG.md actualizado (si aplica)
-- [ ] Commits descriptivos
-- [ ] Branch actualizado con `main`
-
----
-
-## 🐛 Reportar Bugs
-
-Usa [GitHub Issues](https://github.com/JasRockr/Scavengr/issues) con:
-
-- **Descripción clara** del problema
-- **Pasos para reproducir**
-- **Comportamiento esperado** vs actual
-- **Entorno**: OS, Python version, DB engine
-- **Logs/Screenshots** si es posible
-
----
-
-## 💡 Proponer Features
-
-1. Abre un [GitHub Issue](https://github.com/JasRockr/Scavengr/issues)
-2. Describe el **problema** que resuelve
-3. Propón una **solución**
-4. Discute con el equipo antes de implementar
-
----
-
-## 📞 Contacto
-
-- **Issues**: [GitHub Issues](https://github.com/JasRockr/Scavengr/issues)
-- **Email**: jason.rivera@example.com
-- **GitHub**: [@JasRockr](https://github.com/JasRockr)
-
----
-
-¡Gracias por contribuir a Scavengr! 🎉
+Abre un [issue](https://github.com/JasRockr/Scavengr/issues) con los pasos para reproducirlo, lo que esperabas, lo que pasó, y tu sistema operativo, versión de Python, versión de Scavengr y motor de base de datos. No pegues credenciales ni datos reales.
