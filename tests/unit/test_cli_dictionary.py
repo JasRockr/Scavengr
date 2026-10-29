@@ -13,7 +13,7 @@ Tests incluidos:
 - Logging de estadísticas
 - Manejo de excepciones inesperadas
 
-Author: Jason Rivera
+Author: Json Rivera
 Date: 2025-11-18
 """
 

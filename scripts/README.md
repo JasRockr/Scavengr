@@ -752,4 +752,4 @@ Este script es parte del proyecto Scavengr y sigue la misma licencia (MIT).
 
 **Última actualización**: 2025-11-19  
 **Versión**: 1.0  
-**Autor**: Jason Rivera (JasRockr)  
+**Autor**: Json Rivera (JasRockr)

@@ -17,7 +17,7 @@ Comandos disponibles (orden lógico de uso):
 - scavengr dictionary -i <dbml> -o <outputd>    → exportar diccionario
 - scavengr report -i <dbml> -o <output>         → generar informe analítico
 
-Author: Jason Rivera
+Author: Json Rivera
 Date: 2025-10-09
 """
 

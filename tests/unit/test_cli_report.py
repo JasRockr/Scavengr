@@ -12,7 +12,7 @@ Tests incluidos:
 - Manejo de excepciones inesperadas
 - Detección de formato de salida
 
-Author: Jason Rivera
+Author: Json Rivera
 Date: 2025-11-18
 """
 

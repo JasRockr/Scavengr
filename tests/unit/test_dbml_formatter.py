@@ -4,7 +4,7 @@ Tests unitarios para infrastructure/formatters/dbml_formatter.py
 Prueba el formateador DBML que convierte DatabaseSchema a formato DBML.
 Valida generación de tablas, columnas, relaciones, índices y escaping.
 
-Author: Jason Rivera
+Author: Json Rivera
 Date: 2025-11-18
 """
 
