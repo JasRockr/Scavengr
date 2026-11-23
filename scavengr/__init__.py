@@ -35,8 +35,8 @@ __description__ = "Descubre lo que tus bases esconden."
 __project_name__ = "Scavengr"
 
 # Validación de compatibilidad de Python
-if sys.version_info < (3, 8):
-    raise RuntimeError("Scavengr requiere Python 3.8 o superior")
+if sys.version_info < (3, 11):
+    raise RuntimeError("Scavengr requiere Python 3.11 o superior")
 
 # Exportar componentes principales para uso como librería
 # NOTA: Se mantiene compatibilidad con rutas antiguas mediante deprecation warnings

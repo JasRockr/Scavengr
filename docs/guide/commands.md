@@ -1,342 +1,126 @@
-# Comandos CLI
+# Comandos
 
-Referencia completa de todos los comandos disponibles en Scavengr.
+Opciones globales, antes del comando:
 
----
+| Opción | Qué hace |
+| --- | --- |
+| `-v`, `--version` | Muestra la versión |
+| `--verbose` | Activa el detalle de depuración |
+| `-h`, `--help` | Muestra la ayuda; `scavengr <comando> --help` la de cada comando |
 
-## `scavengr init`
+## `init`
 
-Crea archivo de configuración `.env` interactivo.
+Crea el archivo `.env` con la plantilla de configuración. Si ya existe, pregunta antes de sobrescribirlo.
 
-### Sintaxis
+| Opción | Qué hace |
+| --- | --- |
+| `--global` | Lo crea en `~/.scavengr.env` en vez del directorio actual |
+
+## `extract`
+
+Lee tablas, columnas, tipos, PK, FK e índices de la base configurada y escribe un archivo DBML que se puede abrir en [dbdiagram.io](https://dbdiagram.io).
+
+| Opción | Qué hace |
+| --- | --- |
+| `-o`, `--output` | Archivo de salida. Sin esta opción usa `<OUTPUT_FILE_PREFIX>_extracted.dbml` |
+| `--env-file` | Archivo `.env` que quieres usar. Hoy lo pisan los otros `.env` (ver [Configuración](configuration.md#que-archivo-gana)) |
+| `--cache` | Guarda los metadatos y los reutiliza durante 24 horas |
+| `--force-refresh` | Con `--cache`, descarta lo guardado y vuelve a leer la base |
 
 ```bash
-scavengr init [OPTIONS]
+scavengr extract -o esquema.dbml
+scavengr extract --env-file prod.env -o esquema-prod.dbml
+scavengr extract --cache -o esquema.dbml
+scavengr extract --cache --force-refresh -o esquema.dbml
 ```
 
-### Opciones
+La caché se guarda con pickle en `.scavengr_cache/`, dentro del directorio actual, y vence a las 24 horas. Su clave sale del tipo de base, el host y el nombre de la base; no incluye el puerto ni el usuario, así que dos usuarios con permisos distintos sobre la misma base comparten la caché (hallazgo M3).
 
-| Opción      | Descripción                            | Valor por Defecto |
-|-------------|----------------------------------------|-------------------|
-| `--global`  | Crear configuración global en `~/.scavengr.env` | `false`  |
-| `--help`    | Mostrar ayuda                          | -                 |
+!!! warning "Limitaciones conocidas"
+    Se ignoran `DB_PORT` y `DB_DRIVER` (C1). En PostgreSQL, las llaves foráneas pueden salir sin esquema, repetidas o con el esquema equivocado (C2), y un usuario que no es dueño de las tablas no ve PK ni FK (C3). Los índices se asocian a la tabla por nombre, sin esquema (A2). Todo esto se corrige en la 0.0.5.
 
-### Ejemplos
+## `validate`
+
+Revisa un archivo DBML.
+
+| Opción | Qué hace |
+| --- | --- |
+| `-i`, `--input` | Archivo DBML |
+
+Comprueba que:
+
+- el archivo exista y se pueda parsear;
+- haya tablas, que cada una tenga columnas y PK;
+- cada relación apunte a una tabla y una columna que existen.
+
+También avisa de patrones típicos de cada motor: índices de MySQL sin columnas, identificadores camelCase y tipos con espacios en PostgreSQL, y referencias de una columna a sí misma en SQL Server.
+
+Las tablas sin PK y los patrones de cada motor son advertencias; el comando termina bien aunque las haya. No es una validación completa del formato DBML: puede aprobar archivos que el parser oficial rechaza (A4).
+
+## `dictionary`
+
+Genera el diccionario de datos: una fila por columna.
+
+| Opción | Qué hace |
+| --- | --- |
+| `-i`, `--input` | Archivo DBML |
+| `-o`, `--output` | Archivo de salida |
+| `-f`, `--format` | `excel`, `csv` o `json`. Sin esta opción sale de la extensión: `.xlsx`/`.xls`, `.csv` o `.json` |
 
 ```bash
-# Configuración local
+scavengr dictionary -i esquema.dbml -o diccionario.xlsx
+scavengr dictionary -i esquema.dbml -o diccionario.csv
+scavengr dictionary -i esquema.dbml -o salida.txt -f json
+```
+
+Los 19 campos de cada fila:
+
+| Campo | Contenido |
+| --- | --- |
+| `TABLA`, `NOMBRE_DATO` | Tabla (con esquema) y columna |
+| `TIPO_DE_DATO`, `LONGITUD` | Tipo y longitud o precisión |
+| `DESCRIPCION` | Descripción generada a partir del nombre |
+| `REGEX`, `MASCARA` | Patrón de validación sugerido y máscara para ocultar el dato |
+| `CRITERIOS_CALIDAD` | Reglas de calidad sugeridas |
+| `TABLA_MAESTRA`, `CAMPO_MAESTRO`, `TIPO_RELACION` | A qué tabla y columna apunta, si es FK |
+| `ES_MAESTRA`, `ES_PK`, `ES_NULLABLE` | Si la tabla es maestra, si la columna es PK y si acepta nulos |
+| `EJEMPLOS_VALIDOS` | Valores de ejemplo inventados, no leídos de la base |
+| `FUENTE_CAPTURA`, `MODULO` | Sistema de origen y módulo funcional estimado |
+| `SENSIBILIDAD` | `BAJO`, `MEDIO`, `ALTO` o `CRÍTICO` |
+| `OBSERVACIONES` | Advertencias y recomendaciones |
+
+La sensibilidad se decide por el nombre de la columna; Scavengr no lee los datos. Hoy detecta pocas columnas con datos personales y marca algunas que no lo son (C5). Además, se pierden las columnas camelCase que el DBML escribe entre comillas (C4).
+
+## `report`
+
+Genera un informe de calidad del esquema.
+
+| Opción | Qué hace |
+| --- | --- |
+| `-i`, `--input` | Archivo DBML |
+| `-o`, `--output` | Archivo de salida: `.xlsx` para Excel; cualquier otra extensión, JSON |
+
+```bash
+scavengr report -i esquema.dbml -o informe.xlsx
+scavengr report -i esquema.dbml -o informe.json
+```
+
+Contenido:
+
+- **Resumen General:** tablas, columnas, relaciones, PK, FK, nulos.
+- **Calidad de Datos:** puntuación general y por dimensión (completitud, integridad referencial, consistencia de nombres y documentación).
+- **Tipos de Datos:** los tipos más usados y su distribución por categoría.
+- **Seguridad:** distribución de sensibilidad y campos críticos.
+- **Recomendaciones.**
+
+En Excel, cada punto es una hoja. El JSON trae además el análisis de relaciones y de normalización. No hay salida CSV: con `-o informe.csv` el archivo se escribe en JSON.
+
+## Flujo completo
+
+```bash
 scavengr init
-
-# Configuración global
-scavengr init --global
-```
-
----
-
-## `scavengr extract`
-
-Extrae metadatos de base de datos y genera archivo DBML.
-
-### Sintaxis
-
-```bash
-scavengr extract -o OUTPUT [OPTIONS]
-```
-
-### Opciones
-
-| Opción            | Descripción                    | Requerido |
-|-------------------|--------------------------------|-----------|
-| `-o, --output`    | Archivo DBML de salida         | ✅ Sí     |
-| `--env-file`      | Archivo de configuración       | ❌ No     |
-| `--cache`         | Habilitar caché de metadatos   | ❌ No     |
-| `--force-refresh` | Invalidar caché y reextraer    | ❌ No     |
-| `--help`          | Mostrar ayuda                  | -         |
-
-### Ejemplos
-
-```bash
-# Extracción básica
-scavengr extract -o schema.dbml
-
-# Con configuración específica
-scavengr extract -o schema.dbml --env-file prod.env
-
-# Con caché habilitado (primera vez: crea caché)
-scavengr extract --cache -o schema.dbml
-
-# Usando caché (subsecuentes: ~90% más rápido)
-scavengr extract --cache -o schema.dbml
-
-# Forzar actualización de caché (si BD cambió)
-scavengr extract --cache --force-refresh -o schema.dbml
-
-# Ruta completa
-scavengr extract -o /ruta/completa/mi-esquema.dbml
-```
-
-### Sistema de Caché
-
-**Características:**
-- **Serialización**: Pickle (rápido) o JSON (portable)
-- **TTL**: 24 horas por defecto (configurable)
-- **Ubicación**: `.scavengr_cache/` (auto-creado, ignorado por git)
-- **Rendimiento**: ~90% reducción en tiempo de extracciones subsecuentes
-- **Gestión**: Expiración automática basada en TTL
-
-**Uso:**
-```bash
-# Primera extracción (crea caché)
-scavengr extract --cache -o schema.dbml
-# Tiempo: ~30 segundos
-
-# Subsecuentes (usa caché)
-scavengr extract --cache -o schema.dbml
-# Tiempo: ~3 segundos (90% más rápido)
-
-# Si la BD cambió, forzar actualización
-scavengr extract --cache --force-refresh -o schema.dbml
-```
-
-### Salida
-
-Archivo DBML con:
-
-- ✅ Tablas y columnas
-- ✅ Tipos de datos
-- ✅ Primary keys y foreign keys
-- ✅ Índices con columnas
-- ✅ Valores por defecto
-- ✅ Relaciones entre tablas
-
----
-
-## `scavengr validate`
-
-Valida sintaxis y estructura de archivos DBML.
-
-### Sintaxis
-
-```bash
-scavengr validate -i INPUT [OPTIONS]
-```
-
-### Opciones
-
-| Opción            | Descripción                    | Requerido |
-|-------------------|--------------------------------|-----------|
-| `-i, --input`     | Archivo DBML a validar         | ✅ Sí     |
-| `--help`          | Mostrar ayuda                  | -         |
-
-### Ejemplos
-
-```bash
-# Validación básica
-scavengr validate -i schema.dbml
-
-# Ruta completa
-scavengr validate -i /ruta/completa/mi-esquema.dbml
-```
-
-### Validaciones
-
-- **Básicas**: Existencia de archivo, sintaxis DBML
-- **Estructura**: Tablas, columnas, relaciones
-- **Integridad**: Referencias entre tablas
-- **Calidad**: CamelCase, tipos con espacios, índices vacíos
-
-### Salida
-
-```text
-✅ VALIDACIONES BÁSICAS: OK
-   - Archivo: Existe y se puede leer
-   - Sintaxis DBML: Correcta
-
-⚠️  VALIDACIONES DE CALIDAD: 5 ADVERTENCIAS
-   [MySQL] 2 índices BTREE sin columnas → Serán inferidas
-   [PostgreSQL] 3 identificadores CamelCase → Serán escapados
-
-✅ RESULTADO: Esquema procesable
-```
-
----
-
-## `scavengr dictionary`
-
-Genera diccionario de datos en Excel, CSV o JSON.
-
-### Sintaxis
-
-```bash
-scavengr dictionary -i INPUT -o OUTPUT [OPTIONS]
-```
-
-### Opciones
-
-| Opción            | Descripción                      | Requerido |
-|-------------------|----------------------------------|-----------|
-| `-i, --input`     | Archivo DBML de entrada          | ✅ Sí     |
-| `-o, --output`    | Archivo de salida                | ✅ Sí     |
-| `-f, --format`    | Formato (`excel`, `csv`, `json`) | ❌ No     |
-| `--help`          | Mostrar ayuda                    | -         |
-
-### Ejemplos
-
-```bash
-# Excel (detecta por extensión)
-scavengr dictionary -i schema.dbml -o diccionario.xlsx
-
-# CSV
-scavengr dictionary -i schema.dbml -o diccionario.csv
-
-# JSON
-scavengr dictionary -i schema.dbml -o diccionario.json
-
-# Forzar formato
-scavengr dictionary -i schema.dbml -o output.txt -f excel
-```
-
-### Campos del Diccionario
-
-| Campo                   | Descripción                               |
-|-------------------------|-------------------------------------------|
-| Tabla                   | Nombre de la tabla                        |
-| Columna                 | Nombre de la columna                      |
-| Tipo de Dato            | Tipo nativo de BD                         |
-| Tamaño                  | Longitud/precisión                        |
-| Nullable                | Permite valores NULL                      |
-| Primary Key             | Es clave primaria                         |
-| Foreign Key             | Referencia a otra tabla                   |
-| Default                 | Valor por defecto                         |
-| Descripción             | Generada automáticamente (80+ patrones)   |
-| Sensibilidad            | CRÍTICO, ALTO, MEDIO, BAJO                |
-| Máscara Sugerida        | Para datos sensibles                      |
-| Observaciones           | Warnings y recomendaciones                |
-| Ejemplo                 | Valores de ejemplo                        |
-| Formato Regex           | Patrón de validación                      |
-| **+ 5 campos más**      | Índices, relaciones, estadísticas         |
-
----
-
-## `scavengr report`
-
-Genera reporte analítico con métricas de calidad.
-
-### Sintaxis
-
-```bash
-scavengr report -i INPUT -o OUTPUT [OPTIONS]
-```
-
-### Opciones
-
-| Opción            | Descripción                      | Requerido |
-|-------------------|----------------------------------|-----------|
-| `-i, --input`     | Archivo DBML de entrada          | ✅ Sí     |
-| `-o, --output`    | Archivo de salida                | ✅ Sí     |
-| `-f, --format`    | Formato (`excel`, `json`)        | ❌ No     |
-| `--help`          | Mostrar ayuda                    | -         |
-
-### Ejemplos
-
-```bash
-# Excel
-scavengr report -i schema.dbml -o reporte.xlsx
-
-# JSON
-scavengr report -i schema.dbml -o reporte.json
-```
-
-### Contenido del Reporte
-
-**5 hojas en Excel:**
-
-1. **Resumen Ejecutivo**
-   - Score de calidad global
-   - Métricas principales
-   - Top 10 tablas
-
-2. **Análisis de Calidad**
-   - 7 dimensiones evaluadas
-   - Normalization Score
-   - Naming Conventions
-   - Data Types Consistency
-   - Relationships Integrity
-   - Indexing Strategy
-   - Sensitive Data Handling
-   - Documentation Level
-
-3. **Estadísticas**
-   - Distribución de tipos de datos
-   - Tamaños de tablas
-   - Cardinalidad de relaciones
-
-4. **Sensibilidad**
-   - Campos críticos y protegidos
-   - Distribución por nivel
-   - Recomendaciones de seguridad
-
-5. **Recomendaciones**
-   - Mejoras priorizadas
-   - Impacto estimado
-   - Esfuerzo requerido
-
----
-
-## Opciones Globales
-
-Disponibles para todos los comandos:
-
-```bash
-scavengr --version  # Ver versión
-scavengr --help     # Ayuda general
-```
-
----
-
-## Ejemplos de Flujo Completo
-
-### Flujo Básico
-
-```bash
-# 1. Configurar
-scavengr init
-
-# 2. Extraer
-scavengr extract -o schema.dbml
-
-# 3. Validar
-scavengr validate -i schema.dbml
-
-# 4. Documentar
-scavengr dictionary -i schema.dbml -o diccionario.xlsx
-
-# 5. Analizar
-scavengr report -i schema.dbml -o reporte.xlsx
-```
-
-### Múltiples Bases de Datos
-
-```bash
-# Producción
-scavengr extract --env-file prod.env -o schema-prod.dbml
-scavengr dictionary -i schema-prod.dbml -o dict-prod.xlsx
-
-# Desarrollo
-scavengr extract --env-file dev.env -o schema-dev.dbml
-scavengr dictionary -i schema-dev.dbml -o dict-dev.xlsx
-```
-
-### CI/CD Integration
-
-```bash
-# Extraer en pipeline
-scavengr extract -o schema.dbml --env-file ci.env
-
-# Validar en PR
-scavengr validate -i schema.dbml || exit 1
-
-# Generar artefactos
-scavengr dictionary -i schema.dbml -o artifacts/dictionary.xlsx
-scavengr report -i schema.dbml -o artifacts/report.xlsx
+scavengr extract -o esquema.dbml
+scavengr validate -i esquema.dbml
+scavengr dictionary -i esquema.dbml -o diccionario.xlsx
+scavengr report -i esquema.dbml -o informe.xlsx
 ```

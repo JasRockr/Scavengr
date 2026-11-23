@@ -1,139 +1,34 @@
-# 🔐 Branch Protection Setup Guide
+# Protección de `main`
 
-## Configuración Manual de Protección de Rama
+`main` está protegida con el ruleset **`deploy-main`** (Settings → Rules → Rulesets). Estas son sus reglas:
 
-GitHub Actions está configurado en el repositorio. Para proteger la rama `main`, sigue estos pasos:
+| Regla | Efecto |
+| --- | --- |
+| Restrict deletions | No se puede borrar `main` |
+| Block force pushes | No se puede reescribir su historial |
+| Require status checks to pass | Para actualizar `main` tienen que pasar `test`, `lint` y `security`, sobre una rama al día con `main` |
 
-### Via GitHub Web Interface
+El ruleset no exige PR ni aprobaciones, pero un push directo también tiene que pasar los tres checks. El rol de administrador del repositorio está en la lista de bypass.
 
-1. **Ir a Settings del Repositorio**
-   - Navega a `https://github.com/JasRockr/Scavengr/settings`
-   - Selecciona `Branches` en el menú lateral
+## Los checks
 
-2. **Add Branch Protection Rule**
-   - Click en `Add rule`
-   - Branch name pattern: `main`
+Los tres salen de `.github/workflows/ci.yml`, que corre en cada PR, en cada push a `main` y a mano (`workflow_dispatch`):
 
-3. **Configurar Reglas**
-   - ✅ Require a pull request before merging
-     - Require approvals: `1`
-     - Require review from Code Owners: `optional`
-   - ✅ Require status checks to pass before merging
-     - Require branches to be up to date before merging: `true`
-     - Select the following required status checks:
-       - `test` (all matrix combinations)
-       - `lint`
-       - `security`
-       - `build`
-   - ✅ Require branches to be up to date before merging
-   - ✅ Include administrators
+| Check | Qué revisa |
+| --- | --- |
+| `lint` | `ruff check scavengr tests` con las reglas de errores reales de `pyproject.toml`. El informe de estilo y mypy se muestra, pero no bloquea |
+| `security` | `bandit -r scavengr -ll` y `pip-audit` sobre las dependencias instaladas |
+| `test` | Pasa solo si pasaron todas las combinaciones de `unit` (Python 3.11–3.14 en Ubuntu y 3.14 en Windows) y de `lab` (Python 3.11 y 3.14 contra el laboratorio de `tests/lab`) |
 
-4. **Dismiss stale reviews**
-   - Dismiss stale pull request approvals when new commits are pushed: `true`
+Si se agrega, quita o renombra un job de `ci.yml`, hay que revisar que estos nombres sigan coincidiendo con los del ruleset; si no, ningún PR se podrá fusionar.
 
-5. **Save Changes**
-
----
-
-## 🔄 GitHub Actions Status
-
-### Workflows Configurados
-
-| Workflow | Trigger | Descripción |
-|----------|---------|-------------|
-| **CI/CD Pipeline** (ci.yml) | Push main/develop, PR | Tests + Lint + Security + Build (orquestador) |
-| **Test** (test.yml) | Invocado por CI | Pytest en 3 OS × 5 Python versions = 15 combinaciones |
-| **Lint** (lint.yml) | Invocado por CI | flake8 + black + isort + mypy |
-| **Security** (security.yml) | Invocado por CI | safety + bandit |
-| **Docs** (docs.yml) | Push main (docs/**), workflow_dispatch | Build y deploy MkDocs a GitHub Pages |
-| **Release** (release.yml) | Push tags v* | Build y publica en PyPI |
-
-### Status Checks
-
-- ✅ **test** - Pytest en 3 OS × 5 Python versions = 15 combinaciones
-- ✅ **lint** - flake8 + black + isort + mypy (strict mode)
-- ✅ **security** - safety + bandit (continue-on-error)
-- ✅ **build** - Construye el paquete en main
-- ✅ **docs** - Despliega documentación MkDocs a GitHub Pages
-
----
-
-## 📊 Badges para README.md
-
-```markdown
-# Scavengr
-
-![CI/CD](https://github.com/JasRockr/Scavengr/workflows/CI%2FCD%20Pipeline/badge.svg)
-![Tests](https://img.shields.io/badge/tests-passing-brightgreen)
-![Coverage](https://codecov.io/gh/JasRockr/Scavengr/branch/main/graph/badge.svg)
-![Python](https://img.shields.io/badge/python-3.8%2B-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
-```
-
----
-
-## 🚀 Publishing to PyPI
-
-### Prerequisites
-
-1. **PyPI Account**
-   - Crear cuenta en <https://pypi.org>
-   - Generar API token en <https://pypi.org/manage/account/>
-
-2. **GitHub Secret**
-   - Ir a Settings → Secrets → New repository secret
-   - Name: `PYPI_API_TOKEN`
-   - Value: Token de PyPI
-
-3. **Version Tagging**
-
-   ```bash
-   git tag -a v0.0.4 -m "Release vX.y.z"
-   git push origin v0.0.4
-   ```
-
-### Automatic Release
-
-El workflow `release.yml` se activa automáticamente cuando se crea un tag `v*` y:
-
-- ✅ Compila el paquete
-- ✅ Sube a PyPI
-- ✅ Genera artifacts
-
----
-
-## 📋 Checklist de Configuración
-
-- [ ] Rama `main` protegida
-- [ ] Status checks configurados
-- [ ] Require PR reviews habilitado
-- [ ] PYPI_API_TOKEN en secrets
-- [ ] Badges agregados a README.md
-- [ ] Workflows probados exitosamente
-- [ ] Documentación completada
-
----
-
-## 🔍 Verificación
-
-### Verificar que los workflows están activos
+## Consultar el ruleset
 
 ```bash
-# Ver workflows disponibles
-gh workflow list
-
-# Ver últimos runs
-gh run list --workflow=ci.yml
-
-# Trigger un workflow manualmente (si es necesario)
-gh workflow run ci.yml
+gh api repos/JasRockr/Scavengr/rulesets
+gh api repos/JasRockr/Scavengr/rulesets/<id>
 ```
 
-### Ver resultados en GitHub
+## Publicar en PyPI
 
-<https://github.com/JasRockr/Scavengr/actions>
-
----
-
-**Última actualización:** 2025-11-13  
-**Estado:** ✅ Workflows configurados y listos
+No hay workflow de publicación. Las versiones se publican a mano con `scripts/publish.ps1` (ver [scripts/README.md](../scripts/README.md)).

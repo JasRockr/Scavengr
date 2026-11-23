@@ -532,4 +532,4 @@ Configurar branch protection en GitHub: Settings → Branches → Add rule
 ---
 
 **Última actualización**: 2025-11-19  
-**Autores**: Jason Rivera (JasRockr)
+**Autores**: Json Rivera (JasRockr)

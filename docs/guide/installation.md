@@ -1,92 +1,40 @@
 # Instalación
 
-## Requisitos Previos
+Necesitas Python 3.11 o superior.
 
-- **Python**: 3.8 o superior (recomendado: 3.10+)
-- **pip**: Gestor de paquetes de Python
+## Desde PyPI
 
----
-
-## Instalación desde PyPI (Recomendado)
-
-La forma más sencilla es instalar directamente desde PyPI:
+Scavengr no instala drivers de base de datos por defecto. Elige el extra del motor que vas a usar:
 
 ```bash
-# Instalación básica
-pip install scavengr
-
-# Verificar instalación
-scavengr --version
-
-# Configuración inicial
-scavengr init
+pip install "scavengr[postgres]"     # PostgreSQL (psycopg2-binary)
+pip install "scavengr[mysql]"        # MySQL/MariaDB (mysql-connector-python)
+pip install "scavengr[mssql]"        # SQL Server (pyodbc)
+pip install "scavengr[all-db]"       # los tres
 ```
 
----
-
-## Instalación desde Fuente
-
-### Para Desarrollo
-
-```bash
-# Clonar repositorio
-git clone https://github.com/JasRockr/Scavengr.git
-cd Scavengr
-
-# Crear entorno virtual
-python -m venv .venv
-
-# Activar entorno (Windows PowerShell)
-.venv\Scripts\Activate.ps1
-
-# Activar entorno (Linux/Mac)
-source .venv/bin/activate
-
-# Instalar en modo desarrollo
-pip install -e ".[dev]"
-
-# Pre-commit hooks
-pre-commit install
-```
-
----
-
-## Dependencias por Motor de BD
-
-### PostgreSQL
-
-```bash
-pip install psycopg2-binary
-```
-
-### MySQL/MariaDB
-
-```bash
-pip install mysql-connector-python
-```
+!!! note "Versión publicada"
+    La versión de PyPI (0.0.4.post1) todavía declara Python 3.8+. La rama `main` ya exige 3.11, porque la 3.10 dejó de recibir parches de seguridad el 1 de octubre de 2026.
 
 ### SQL Server
 
+Además de `pyodbc`, necesitas un [driver ODBC de Microsoft](https://learn.microsoft.com/es-es/sql/connect/odbc/download-odbc-driver-for-sql-server) instalado en el sistema. Hoy Scavengr siempre usa el driver llamado `SQL Server` e ignora `DB_DRIVER` (hallazgo C1, se corrige en la 0.0.5).
+
+## Desde el código
+
 ```bash
-pip install pyodbc
+git clone https://github.com/JasRockr/Scavengr.git
+cd Scavengr
+python -m venv .venv
+.venv\Scripts\Activate.ps1          # Windows (PowerShell)
+source .venv/bin/activate           # Linux/macOS
+pip install -e ".[dev,postgres,mysql,mssql]"
+pre-commit install
 ```
 
-!!! note "Windows ODBC Driver"
-    En Windows necesitas instalar **ODBC Driver 17 for SQL Server**.
-    
-    [Descargar aquí](https://learn.microsoft.com/en-us/sql/connect/odbc/download-odbc-driver-for-sql-server)
-
----
-
-## Verificación
+## Comprobar
 
 ```bash
-# Ver versión
 scavengr --version
-
-# Ver ayuda
 scavengr --help
-
-# Listar comandos disponibles
-scavengr
 ```

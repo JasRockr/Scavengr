@@ -4,7 +4,7 @@ Tests unitarios para infrastructure/database/scanners.py
 Prueba los escáneres de metadatos para SQL Server, MySQL y PostgreSQL.
 Valida las queries de extracción y el factory create_scanner.
 
-Author: Jason Rivera
+Author: Json Rivera
 Date: 2025-11-18
 """
 

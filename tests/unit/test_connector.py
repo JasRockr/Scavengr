@@ -12,7 +12,7 @@ Cobertura:
 - Ejecución de queries
 - Gestor de conexiones (ConnectionManager)
 
-Author: Jason Rivera
+Author: Json Rivera
 Date: 2025-11-18
 """
 

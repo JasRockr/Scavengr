@@ -10,7 +10,7 @@ Cobertura:
 - Creación de directorios automática
 - Detección de formatos de salida
 
-Author: Jason Rivera
+Author: Json Rivera
 Date: 2025-11-13
 """
 
